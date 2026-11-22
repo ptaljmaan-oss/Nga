@@ -1,0 +1,2771 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NGA — Numismatic Grading Agency | nganotes.com</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Cairo (Arabic), Cinzel (Numismatic Serif), Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Cinzel:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- QRCode.js & jsPDF (Direct A4 PDF Engine — Zero Blank Pages on iOS Safari) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            emeraldDeep: '#064e3b',
+            emeraldDark: '#04392b',
+            emeraldMid: '#0f5132',
+            goldRich: '#b48a28',
+            goldBright: '#d4af37',
+            goldPale: '#fbf6e4',
+            ivoryBg: '#f8f6f0'
+          },
+          fontFamily: {
+            arabic: ['Cairo', 'sans-serif'],
+            sans: ['Inter', 'Cairo', 'sans-serif'],
+            serifDisplay: ['Cinzel', 'serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    body {
+      background-color: #f8f6f0;
+      background-image:
+        radial-gradient(circle at 15% 15%, rgba(212, 175, 55, 0.07) 0%, transparent 45%),
+        radial-gradient(circle at 85% 85%, rgba(6, 78, 59, 0.07) 0%, transparent 45%),
+        repeating-linear-gradient(45deg, rgba(6, 78, 59, 0.018) 0px, rgba(6, 78, 59, 0.018) 1px, transparent 1px, transparent 12px);
+    }
+
+    html[dir="rtl"] body { font-family: 'Cairo', sans-serif; }
+    html[dir="ltr"] body { font-family: 'Inter', sans-serif; }
+
+    /* Heritage Guilloche Security Pattern for Physical Labels */
+    .guilloche-card {
+      background-color: #fdfbf3;
+      background-image:
+        repeating-radial-gradient(circle at 50% 50%, rgba(6, 78, 59, 0.045) 0, rgba(6, 78, 59, 0.045) 1px, transparent 1px, transparent 5px),
+        repeating-linear-gradient(-30deg, rgba(212, 175, 55, 0.09) 0px, rgba(212, 175, 55, 0.09) 1px, transparent 1px, transparent 6px);
+      border: 0.45mm solid #064e3b;
+      box-shadow: inset 0 0 0 0.4mm #d4af37;
+      box-sizing: border-box;
+    }
+
+    /* Full A4 Sheet Container (210mm x 297mm) */
+    .a4-page-sheet {
+      width: 210mm;
+      height: 297mm;
+      background: #ffffff;
+      padding: 8mm 10mm;
+      box-sizing: border-box;
+      margin: 0 auto 20px auto;
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.25);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      direction: ltr;
+      overflow: hidden;
+    }
+
+    /* Crop / Cut Tick Frame Around Each Label */
+    .label-cut-slot {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .label-cut-slot::before {
+      content: '';
+      position: absolute;
+      inset: -1.4mm;
+      border: 0.25mm dashed rgba(100, 116, 139, 0.55);
+      pointer-events: none;
+    }
+
+    /* =================================================================== */
+    /* NATIVE PRINT MEDIA QUERY (Full A4 Multi-Page Duplex on iOS/Desktop) */
+    /* =================================================================== */
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 0;
+      }
+
+      html, body {
+        width: 210mm !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      /* Hide everything except the dedicated print sheet root */
+      body > *:not(#print-sheet-root) {
+        display: none !important;
+      }
+
+      #print-sheet-root {
+        display: block !important;
+        position: static !important;
+        width: 210mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        overflow: visible !important;
+      }
+
+      #print-modal-toolbar {
+        display: none !important;
+      }
+
+      #print-pages-wrapper {
+        display: block !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        transform: none !important;
+      }
+
+      .a4-page-sheet {
+        width: 210mm !important;
+        height: 296.5mm !important;
+        margin: 0 !important;
+        padding: 8mm 10mm !important;
+        box-shadow: none !important;
+        page-break-after: always !important;
+        break-after: page !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+
+      .a4-page-sheet:last-child {
+        page-break-after: auto !important;
+        break-after: auto !important;
+      }
+    }
+  </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- ===================================================================== -->
+  <!-- PUBLIC HEADER (Strictly 3 Public Tabs — Admin Completely Hidden)      -->
+  <!-- ===================================================================== -->
+  <header class="bg-emeraldDeep text-white border-b-2 border-goldBright sticky top-0 z-40 shadow-lg">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2">
+      <!-- Brand Logo & Crest -->
+      <div onclick="switchPublicTab('verify')" class="flex items-center gap-2.5 sm:gap-3.5 cursor-pointer flex-shrink-0">
+        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-goldBright via-goldRich to-amber-700 p-0.5 shadow-md flex-shrink-0">
+          <div class="w-full h-full bg-emeraldDark rounded-[10px] flex flex-col items-center justify-center border border-goldBright/40">
+            <span class="font-serifDisplay font-black text-goldBright text-sm sm:text-base tracking-wider leading-none">NGA</span>
+            <span class="text-[7px] text-goldPale/80 tracking-widest uppercase mt-0.5">EST.2026</span>
+          </div>
+        </div>
+        <div class="leading-tight">
+          <div class="flex items-center gap-2">
+            <h1 class="font-serifDisplay font-bold text-base sm:text-xl tracking-wide text-goldBright">NGA</h1>
+            <span class="hidden md:inline-block text-xs px-2 py-0.5 rounded-full bg-emeraldMid border border-goldBright/40 text-goldPale font-mono">nganotes.com</span>
+          </div>
+          <p class="text-[10px] sm:text-xs text-emerald-100/90 font-medium" data-i18n="brandSubtitle">Numismatic Grading Agency</p>
+        </div>
+      </div>
+
+      <!-- Public Navigation (Verify Cert, Population Report, Grade With Us, Language) -->
+      <nav class="flex items-center gap-1 sm:gap-2.5 overflow-x-auto py-1">
+        <button id="tab-verify" onclick="switchPublicTab('verify')"
+          class="px-2.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-goldBright text-emeraldDark shadow whitespace-nowrap">
+          <span data-i18n="navVerify">التحقق من الشهادة</span>
+        </button>
+
+        <button id="tab-registry" onclick="switchPublicTab('registry')"
+          class="px-2.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-emeraldMid hover:bg-emerald-700 text-white border border-goldBright/30 whitespace-nowrap">
+          <span data-i18n="navRegistry">العملات المقيّمة</span>
+        </button>
+
+        <button id="tab-submit" onclick="switchPublicTab('submit')"
+          class="px-2.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-emeraldMid hover:bg-emerald-700 text-white border border-goldBright/30 whitespace-nowrap">
+          <span data-i18n="navSubmit">قيّم معنا</span>
+        </button>
+
+        <button onclick="toggleLanguage()"
+          class="px-2.5 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white/10 hover:bg-white/20 text-goldBright border border-goldBright/40 transition-all flex items-center gap-1 flex-shrink-0">
+          <span>🌐</span>
+          <span id="lang-btn-text">EN</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- MAIN APPLICATION AREA                                                 -->
+  <!-- ===================================================================== -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10">
+
+    <!-- =================================================================== -->
+    <!-- TAB 1: CERTIFICATE VERIFICATION PORTAL                              -->
+    <!-- =================================================================== -->
+    <section id="section-verify" class="space-y-8">
+      <div class="bg-gradient-to-br from-emeraldDark via-emeraldDeep to-emeraldMid rounded-3xl p-6 sm:p-10 text-white shadow-xl border border-goldBright/50 relative overflow-hidden">
+        <div class="max-w-3xl mx-auto text-center space-y-4 relative z-10">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 border border-goldBright/40 text-goldBright text-xs font-semibold">
+            <span>🛡️</span>
+            <span data-i18n="heroBadge">بوابة التحقق الرسمية من شهادات العملات الورقية</span>
+          </div>
+          <h2 class="text-2xl sm:text-4xl font-extrabold tracking-tight" data-i18n="heroTitle">
+            تحقق من أصالة وتقييم العملة
+          </h2>
+          <p class="text-sm sm:text-base text-emerald-100/90 max-w-2xl mx-auto" data-i18n="heroSubtitle">
+            أدخل رقم الشهادة المطبوع على الليبل أو امسح رمز الاستجابة السريعة (QR) لعرض تفاصيل التقييم، ترتيب الندرة (TOP POP)، وصور الوجه والظهر عالية الدقة.
+          </p>
+
+          <!-- Search Bar -->
+          <form onsubmit="handleVerifySubmit(event)" class="mt-6 flex flex-col sm:flex-row gap-3 max-w-xl mx-auto">
+            <input id="verify-search-input" type="text" required placeholder="مثال: NGA-1001"
+              class="flex-grow px-4 py-3.5 rounded-2xl bg-white text-slate-900 font-mono font-bold text-base sm:text-lg uppercase tracking-wider border-2 border-goldBright focus:outline-none focus:ring-4 focus:ring-goldBright/30 text-center sm:text-start" />
+            <button type="submit"
+              class="px-7 py-3.5 rounded-2xl bg-gradient-to-r from-goldBright to-goldRich hover:brightness-105 text-emeraldDark font-extrabold text-base shadow-lg transition-all flex items-center justify-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <span data-i18n="searchBtn">فحص الشهادة</span>
+            </button>
+          </form>
+
+          <!-- Quick Samples -->
+          <div class="pt-2 flex flex-wrap items-center justify-center gap-2 text-xs text-emerald-100">
+            <span data-i18n="trySamples">أمثلة للتجربة السريعة:</span>
+            <button type="button" onclick="verifyCertificate('NGA-1001')" class="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-goldBright hover:text-emeraldDark font-mono font-bold transition">NGA-1001 (TOP POP)</button>
+            <button type="button" onclick="verifyCertificate('NGA-1002')" class="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-goldBright hover:text-emeraldDark font-mono font-bold transition">NGA-1002</button>
+            <button type="button" onclick="verifyCertificate('NGA-1004')" class="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-goldBright hover:text-emeraldDark font-mono font-bold transition">NGA-1004 (NET)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Verification Output Card -->
+      <div id="verify-result-box" class="hidden"></div>
+
+      <!-- Not Found Box -->
+      <div id="verify-empty-box" class="hidden max-w-2xl mx-auto bg-red-50 border-2 border-red-200 rounded-2xl p-6 text-center space-y-2">
+        <div class="text-3xl">⚠️</div>
+        <h3 class="text-lg font-bold text-red-800" data-i18n="notFoundTitle">لم يتم العثور على رقم الشهادة</h3>
+        <p class="text-sm text-red-700" data-i18n="notFoundDesc">تأكد من كتابة الرقم بشكل صحيح كما هو مطبوع على الليبل (مثال: NGA-1001).</p>
+      </div>
+
+      <!-- Info Highlights -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 pt-2">
+        <div class="bg-white rounded-2xl p-5 border border-goldBright/40 shadow-sm space-y-2">
+          <div class="w-10 h-10 rounded-xl bg-emeraldDeep/10 text-emeraldDeep flex items-center justify-center font-bold text-lg">🏅</div>
+          <h3 class="font-bold text-emeraldDeep text-base" data-i18n="feat1Title">معايير تقييم عالمية (1–70)</h3>
+          <p class="text-xs sm:text-sm text-slate-600 leading-relaxed" data-i18n="feat1Desc">
+            نعتمد مقياس شيلدون العالمي لتقييم حالة الورق والألوان والحواف، مع تمييز الأوراق ذات الجودة الاستثنائية بختم EPQ.
+          </p>
+        </div>
+        <div class="bg-white rounded-2xl p-5 border border-goldBright/40 shadow-sm space-y-2">
+          <div class="w-10 h-10 rounded-xl bg-goldBright/20 text-amber-900 flex items-center justify-center font-bold text-lg">✨</div>
+          <h3 class="font-bold text-emeraldDeep text-base" data-i18n="feat2Title">هولوغرام أمني مرقم تسلسلياً</h3>
+          <p class="text-xs sm:text-sm text-slate-600 leading-relaxed" data-i18n="feat2Desc">
+            كل حافظة مزودة بختم هولوغرام ذهبي غير قابل للنزع (20×10 ملم) برقم تسلسلي فريد مرتبط بقاعدة البيانات لمنع التلاعب.
+          </p>
+        </div>
+        <div class="bg-white rounded-2xl p-5 border border-goldBright/40 shadow-sm space-y-2">
+          <div class="w-10 h-10 rounded-xl bg-emeraldDeep/10 text-emeraldDeep flex items-center justify-center font-bold text-lg">👑</div>
+          <h3 class="font-bold text-emeraldDeep text-base" data-i18n="feat3Title">سجل التعداد وتصنيف TOP POP</h3>
+          <p class="text-xs sm:text-sm text-slate-600 leading-relaxed" data-i18n="feat3Desc">
+            يعرض النظام إحصائية دقيقة لعدد القطع المقيّمة في كل درجة وعدد القطع الأعلى تقييماً لكل إصدار.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 2: POPULATION REPORT / GRADED BANKNOTES REGISTRY                -->
+    <!-- =================================================================== -->
+    <section id="section-registry" class="hidden space-y-6">
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-goldBright/40 shadow-md space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+          <div>
+            <span class="px-3 py-1 rounded-full bg-goldPale text-amber-900 border border-goldBright/50 text-xs font-extrabold">NGA POPULATION REPORT</span>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-emeraldDeep mt-2" data-i18n="regTitle">
+              سجل العملات المقيّمة وتقرير الندرة
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-600 mt-1" data-i18n="regSubtitle">
+              استعرض جميع العملات الورقية الموثقة لدى NGA مع إحصائيات التقييم وشارات أعلى تقييم (TOP POP).
+            </p>
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-2.5 w-full md:w-auto">
+            <input id="pop-search-input" type="text" oninput="renderPopulationReport()"
+              placeholder="بحث بالدولة، الفئة، Pick، أو الشهادة..."
+              class="px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:border-emeraldDeep focus:outline-none w-full sm:w-64" />
+            <select id="pop-country-select" onchange="renderPopulationReport()"
+              class="px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm font-bold text-slate-700">
+              <option value="ALL" data-i18n="allCountries">جميع الدول</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- KPI Metrics -->
+        <div id="pop-kpi-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
+
+        <!-- Graded Notes List -->
+        <div id="pop-cards-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 3: GRADE WITH US (PRICING TIERS & EMAIL SUBMISSION)             -->
+    <!-- =================================================================== -->
+    <section id="section-submit" class="hidden space-y-8">
+      <div class="bg-gradient-to-r from-emeraldDark via-emeraldDeep to-emeraldMid rounded-3xl p-6 sm:p-9 text-white border border-goldBright/50 shadow-xl">
+        <div class="max-w-3xl space-y-2">
+          <span class="px-3 py-1 rounded-full bg-white/10 text-goldBright border border-goldBright/40 text-xs font-bold" data-i18n="subBadge">خدمات التقييم والتغليف الاحترافي</span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold" data-i18n="subTitle">قيّم عملاتك الورقية مع NGA</h2>
+          <p class="text-xs sm:text-sm text-emerald-100/90 leading-relaxed" data-i18n="subSubtitle">
+            اختر الباقة المناسبة لقيمة عملاتك وأرسل طلب التقييم مباشرة عبر البريد الإلكتروني ليتواصل معك فريق الاستقبال وتزويدك بعنوان الإرسال ورقم المتابعة.
+          </p>
+        </div>
+      </div>
+
+      <!-- 4 Pricing Tiers -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div onclick="chooseTier('Economy', 18)" class="cursor-pointer bg-white rounded-3xl p-5 border-2 border-slate-200 hover:border-goldBright shadow-sm hover:shadow-md transition flex flex-col justify-between space-y-4">
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold uppercase text-emeraldDeep bg-emeraldDeep/10 px-2.5 py-1 rounded-lg">ECONOMY</span>
+              <span class="text-xs text-slate-500 font-bold" data-i18n="tier1Time">٣٠ يوم عمل</span>
+            </div>
+            <h3 class="text-lg font-extrabold text-slate-900" data-i18n="tier1Name">الباقة الاقتصادية</h3>
+            <div class="flex items-baseline gap-1">
+              <span class="text-3xl font-serifDisplay font-extrabold text-emeraldDeep">$18</span>
+              <span class="text-xs text-slate-500" data-i18n="perNote">/ للعملة الواحدة</span>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed pt-1" data-i18n="tier1Desc">مناسبة للعملات الورقية القياسية التي تصل قيمتها التقديرية حتى $300.</p>
+          </div>
+          <button type="button" class="w-full py-2 rounded-xl bg-slate-100 hover:bg-emeraldDeep hover:text-goldBright text-emeraldDeep font-bold text-xs transition" data-i18n="selectTierBtn">اختيار الباقة</button>
+        </div>
+
+        <div onclick="chooseTier('Standard', 30)" class="cursor-pointer bg-white rounded-3xl p-5 border-2 border-goldBright shadow-md hover:shadow-lg transition flex flex-col justify-between space-y-4 relative">
+          <span class="absolute -top-3 left-4 px-3 py-0.5 rounded-full bg-goldBright text-emeraldDark text-[10px] font-extrabold uppercase shadow" data-i18n="mostPopular">الأكثر طلباً</span>
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold uppercase text-amber-900 bg-goldPale px-2.5 py-1 rounded-lg">STANDARD</span>
+              <span class="text-xs text-slate-500 font-bold" data-i18n="tier2Time">١٥ يوم عمل</span>
+            </div>
+            <h3 class="text-lg font-extrabold text-slate-900" data-i18n="tier2Name">الباقة القياسية</h3>
+            <div class="flex items-baseline gap-1">
+              <span class="text-3xl font-serifDisplay font-extrabold text-emeraldDeep">$30</span>
+              <span class="text-xs text-slate-500" data-i18n="perNote">/ للعملة الواحدة</span>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed pt-1" data-i18n="tier2Desc">للعملات التذكارية والإصدارات التاريخية التي تصل قيمتها حتى $1,000.</p>
+          </div>
+          <button type="button" class="w-full py-2 rounded-xl bg-emeraldDeep text-goldBright font-bold text-xs transition" data-i18n="selectTierBtn">اختيار الباقة</button>
+        </div>
+
+        <div onclick="chooseTier('Express', 55)" class="cursor-pointer bg-white rounded-3xl p-5 border-2 border-slate-200 hover:border-goldBright shadow-sm hover:shadow-md transition flex flex-col justify-between space-y-4">
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold uppercase text-emeraldDeep bg-emeraldDeep/10 px-2.5 py-1 rounded-lg">EXPRESS</span>
+              <span class="text-xs text-slate-500 font-bold" data-i18n="tier3Time">٥ أيام عمل</span>
+            </div>
+            <h3 class="text-lg font-extrabold text-slate-900" data-i18n="tier3Name">الباقة السريعة</h3>
+            <div class="flex items-baseline gap-1">
+              <span class="text-3xl font-serifDisplay font-extrabold text-emeraldDeep">$55</span>
+              <span class="text-xs text-slate-500" data-i18n="perNote">/ للعملة الواحدة</span>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed pt-1" data-i18n="tier3Desc">أولوية الفحص السريع للعملات النادرة التي تصل قيمتها حتى $3,000.</p>
+          </div>
+          <button type="button" class="w-full py-2 rounded-xl bg-slate-100 hover:bg-emeraldDeep hover:text-goldBright text-emeraldDeep font-bold text-xs transition" data-i18n="selectTierBtn">اختيار الباقة</button>
+        </div>
+
+        <div onclick="chooseTier('Rarities VIP', 95)" class="cursor-pointer bg-emeraldDark text-white rounded-3xl p-5 border-2 border-goldBright shadow-md hover:shadow-lg transition flex flex-col justify-between space-y-4">
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold uppercase text-emeraldDark bg-goldBright px-2.5 py-1 rounded-lg">RARITIES VIP</span>
+              <span class="text-xs text-goldPale font-bold" data-i18n="tier4Time">٤٨ ساعة</span>
+            </div>
+            <h3 class="text-lg font-extrabold text-white" data-i18n="tier4Name">باقة النوادر (عاجل)</h3>
+            <div class="flex items-baseline gap-1">
+              <span class="text-3xl font-serifDisplay font-extrabold text-goldBright">$95</span>
+              <span class="text-xs text-emerald-100" data-i18n="perNote">/ للعملة الواحدة</span>
+            </div>
+            <p class="text-xs text-emerald-100/90 leading-relaxed pt-1" data-i18n="tier4Desc">مخصصة للنوادر والعملات المرتفعة القيمة (أكثر من $3,000) مع معالجة فورية.</p>
+          </div>
+          <button type="button" class="w-full py-2 rounded-xl bg-goldBright text-emeraldDark font-extrabold text-xs transition" data-i18n="selectTierBtn">اختيار الباقة</button>
+        </div>
+      </div>
+
+      <!-- Submission Email Form -->
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-goldBright/40 shadow-md max-w-4xl mx-auto space-y-5">
+        <div class="border-b border-slate-100 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h3 class="text-xl font-extrabold text-emeraldDeep" data-i18n="subFormTitle">نموذج طلب تقييم والتواصل عبر البريد الإلكتروني</h3>
+            <p class="text-xs text-slate-500 mt-0.5" data-i18n="subFormHint">سيتم تجهيز رسالة رسمية بكل تفاصيل طلبك لإرسالها مباشرة إلى بريد الإدارة: submissions@nganotes.com</p>
+          </div>
+          <div class="px-3.5 py-2 rounded-xl bg-goldPale border border-goldBright text-emeraldDeep font-extrabold text-sm">
+            <span data-i18n="estTotalLbl">التكلفة التقديرية:</span>
+            <span id="sub-cost-badge" class="font-mono text-lg ms-1">$30</span>
+          </div>
+        </div>
+
+        <form onsubmit="handleSubmissionEmail(event)" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="subClientName">الاسم الكامل *</label>
+              <input id="inq-name" type="text" required placeholder="محمد العتيبي / Mohammed Al-Otaibi"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:border-emeraldDeep focus:outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="subClientEmail">البريد الإلكتروني للعميل *</label>
+              <input id="inq-email" type="email" required placeholder="collector@example.com"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:border-emeraldDeep focus:outline-none" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="subTierSelect">الباقة المختارة *</label>
+              <select id="inq-tier" onchange="updateSubmissionTotal()"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm font-bold">
+                <option value="Economy" data-price="18">Economy ($18 / note)</option>
+                <option value="Standard" data-price="30" selected>Standard ($30 / note)</option>
+                <option value="Express" data-price="55">Express ($55 / note)</option>
+                <option value="Rarities VIP" data-price="95">Rarities VIP ($95 / note)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="subQty">عدد العملات *</label>
+              <input id="inq-qty" type="number" min="1" max="500" value="1" required oninput="updateSubmissionTotal()"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-mono text-sm font-bold" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="subCountry">الدولة / المدينة *</label>
+              <input id="inq-city" type="text" required placeholder="الرياض، السعودية / Riyadh, KSA"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="subNotesList">قائمة العملات المراد تقييمها (الدولة، الفئة، السنة، الرقم التسلسلي) *</label>
+            <textarea id="inq-notes" rows="3" required
+              placeholder="1) Saudi Arabia 100 Riyals 1961 - S/N A/1 482910&#10;2) Kuwait 1 Dinar 1968 - S/N B/3 119402"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:border-emeraldDeep focus:outline-none"></textarea>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-3 pt-2">
+            <button type="submit"
+              class="flex-1 sm:flex-none px-8 py-3.5 rounded-2xl bg-gradient-to-r from-emeraldDark to-emeraldDeep hover:brightness-110 text-goldBright font-extrabold text-sm sm:text-base shadow-lg transition flex items-center justify-center gap-2">
+              ✉️ <span data-i18n="sendEmailBtn">إرسال طلب التقييم عبر الإيميل</span>
+            </button>
+            <button type="button" onclick="copySubmissionInquiry()"
+              class="px-5 py-3.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs sm:text-sm transition">
+              📋 <span data-i18n="copyReqBtn">نسخ نص الطلب</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 4: SECRET ADMIN & A4 DUPLEX PRINT / PDF STUDIO (#/admin-nga)    -->
+    <!-- =================================================================== -->
+    <section id="section-admin" class="hidden space-y-8">
+      <!-- Admin Header -->
+      <div class="bg-white rounded-2xl p-4 sm:p-6 border border-goldBright/50 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-md bg-emeraldDark text-goldBright text-xs font-bold">SECRET ADMIN (#/admin-nga)</span>
+            <span id="fb-status-pill" class="px-2.5 py-0.5 rounded-md bg-amber-100 text-amber-900 text-xs font-semibold">Local Storage Mode</span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-extrabold text-emeraldDeep mt-1" data-i18n="adminTitle">
+            لوحة إدارة الشهادات وطباعة الليبلات وتصدير PDF (A4 Duplex)
+          </h2>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="resetCertForm()" class="px-4 py-2.5 rounded-xl bg-emeraldDeep hover:bg-emeraldMid text-white text-xs sm:text-sm font-bold transition">
+            + <span data-i18n="newCertBtn">شهادة جديدة</span>
+          </button>
+          <button onclick="exitAdminPortal()" class="px-4 py-2.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs sm:text-sm font-bold transition">
+            🔒 <span data-i18n="lockBtn">قفل والخروج للرئيسية</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Editor + Live Preview Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <!-- Certificate Form -->
+        <div class="lg:col-span-7 bg-white rounded-3xl p-5 sm:p-7 border border-goldBright/40 shadow-md space-y-5">
+          <h3 class="text-lg font-extrabold text-emeraldDeep border-b border-slate-100 pb-3" data-i18n="formAddTitle">
+            تسجيل / تعديل عملة مقيّمة
+          </h3>
+
+          <form id="admin-cert-form" onsubmit="handleSaveCert(event)" class="space-y-4">
+            <!-- Row 1: Cert Number, Hologram Serial, Date -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="lblCertNum">رقم الشهادة (Cert #) *</label>
+                <input id="inp-certNum" type="text" required oninput="refreshLivePreview()" placeholder="NGA-1005"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-mono font-bold uppercase focus:border-emeraldDeep focus:outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="lblHoloSerial">رقم الهولوغرام (20×10mm)</label>
+                <input id="inp-holo" type="text" oninput="refreshLivePreview()" placeholder="041570"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-mono font-bold focus:border-emeraldDeep focus:outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="lblGradeDate">تاريخ التقييم والطباعة *</label>
+                <input id="inp-date" type="date" required
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-mono text-sm font-bold focus:border-emeraldDeep focus:outline-none" />
+              </div>
+            </div>
+
+            <!-- Row 2: Country EN / AR -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="lblCountryEn">الدولة بالإنجليزية (لليبل) *</label>
+                <input id="inp-countryEn" type="text" required oninput="refreshLivePreview()" placeholder="SAUDI ARABIA"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-semibold uppercase focus:border-emeraldDeep focus:outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="lblCountryAr">الدولة بالعربية (للبوابة)</label>
+                <input id="inp-countryAr" type="text" placeholder="المملكة العربية السعودية"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-emeraldDeep focus:outline-none" />
+              </div>
+            </div>
+
+            <!-- Row 3: Denomination EN / AR -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="lblDenomEn">الفئة بالإنجليزية (لليبل) *</label>
+                <input id="inp-denomEn" type="text" required oninput="refreshLivePreview()" placeholder="100 RIYALS"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-semibold uppercase focus:border-emeraldDeep focus:outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="lblDenomAr">الفئة بالعربية (للبوابة)</label>
+                <input id="inp-denomAr" type="text" placeholder="١٠٠ ريال سعودي"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-emeraldDeep focus:outline-none" />
+              </div>
+            </div>
+
+            <!-- Row 4: Year, Fixed Pick Number + Code, Banknote Serial -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="lblYear">سنة الإصدار *</label>
+                <input id="inp-year" type="text" required oninput="refreshLivePreview()" placeholder="AH1379 / 1961"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-mono text-sm focus:border-emeraldDeep focus:outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="lblPick">رقم الكتالوج (أرقام وحروف فقط)</label>
+                <div class="flex items-stretch rounded-xl border border-slate-300 overflow-hidden bg-slate-50 focus-within:border-emeraldDeep" dir="ltr">
+                  <span class="px-2.5 py-2.5 bg-emeraldDeep/10 text-emeraldDeep font-mono font-extrabold text-xs flex items-center select-none border-r border-slate-300">
+                    Pick Number
+                  </span>
+                  <input id="inp-pick" type="text" oninput="refreshLivePreview()" placeholder="10a"
+                    class="w-full px-2.5 py-2 bg-white font-mono text-sm font-bold text-slate-900 focus:outline-none" />
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="lblSerial">الرقم التسلسلي للعملة *</label>
+                <input id="inp-serial" type="text" required oninput="refreshLivePreview()" placeholder="A/1 482910"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-mono text-sm focus:border-emeraldDeep focus:outline-none" />
+              </div>
+            </div>
+
+            <!-- Row 5: Grade + Interactive EPQ / NET Buttons Underneath -->
+            <div class="p-4 rounded-2xl bg-goldPale/70 border border-goldBright/50 space-y-3">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+                <div>
+                  <label class="block text-xs font-extrabold text-emeraldDeep mb-1" data-i18n="lblGrade">درجة التقييم (Grade 1-70) *</label>
+                  <input id="inp-grade" type="text" required oninput="refreshLivePreview()" placeholder="66"
+                    class="w-full px-4 py-2.5 rounded-xl border-2 border-emeraldDeep bg-white font-serifDisplay font-extrabold text-2xl text-emeraldDeep text-center focus:outline-none" />
+                </div>
+
+                <div>
+                  <label class="block text-xs font-extrabold text-emeraldDeep mb-1.5" data-i18n="lblDesignation">
+                    الختم الإضافي تحت رقم التقييم (اختياري):
+                  </label>
+                  <div class="flex items-center gap-2.5">
+                    <button type="button" id="toggle-epq-btn" onclick="toggleGradeDesignation('EPQ')"
+                      class="flex-1 py-2.5 px-3 rounded-xl border-2 border-slate-300 bg-white text-slate-700 font-extrabold text-sm transition-all flex items-center justify-center gap-1.5 shadow-sm">
+                      <span id="epq-indicator" class="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
+                      <span>EPQ</span>
+                    </button>
+
+                    <button type="button" id="toggle-net-btn" onclick="toggleGradeDesignation('NET')"
+                      class="flex-1 py-2.5 px-3 rounded-xl border-2 border-slate-300 bg-white text-slate-700 font-extrabold text-sm transition-all flex items-center justify-center gap-1.5 shadow-sm">
+                      <span id="net-indicator" class="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
+                      <span>NET</span>
+                    </button>
+                  </div>
+                  <p class="text-[11px] text-slate-600 mt-1.5" data-i18n="designationHint">
+                    اضغط على EPQ أو NET لإظهاره تحت رقم التقييم في التصميم، أو اتركهما غير مفعلين للطباعة بدونهما.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Row 6: Physical Label Size (mm) -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="lblSizePreset">مقاس الليبل (ملم)</label>
+                <select id="inp-sizePreset" onchange="handleSizePresetChange()"
+                  class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm font-bold">
+                  <option value="standard" data-i18n="sizeStandard">قياسي (110 × 25 ملم)</option>
+                  <option value="large" data-i18n="sizeLarge">كبير (140 × 30 ملم)</option>
+                  <option value="compact" data-i18n="sizeCompact">مزدوج صفّين (90 × 24 ملم)</option>
+                  <option value="custom" data-i18n="sizeCustom">مقاس مخصص...</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="lblWidthMm">العرض (mm)</label>
+                <input id="inp-widthMm" type="number" min="70" max="190" value="110" oninput="refreshLivePreview()"
+                  class="w-full px-3 py-2 rounded-xl border border-slate-300 font-mono text-sm font-bold" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="lblHeightMm">الارتفاع (mm)</label>
+                <input id="inp-heightMm" type="number" min="18" max="60" value="25" oninput="refreshLivePreview()"
+                  class="w-full px-3 py-2 rounded-xl border border-slate-300 font-mono text-sm font-bold" />
+              </div>
+            </div>
+
+            <!-- Row 7: Front & Back Scans -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="p-3 rounded-2xl border border-dashed border-slate-300 bg-slate-50/70 space-y-2">
+                <label class="block text-xs font-bold text-emeraldDeep" data-i18n="lblFrontImg">صورة وجه العملة (Obverse)</label>
+                <input type="file" accept="image/*" onchange="handleScanFile(event, 'front')" class="block w-full text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emeraldDeep file:text-white hover:file:bg-emeraldMid" />
+                <input id="inp-frontUrl" type="text" placeholder="أو رابط الصورة URL..." class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-mono" />
+              </div>
+              <div class="p-3 rounded-2xl border border-dashed border-slate-300 bg-slate-50/70 space-y-2">
+                <label class="block text-xs font-bold text-emeraldDeep" data-i18n="lblBackImg">صورة ظهر العملة (Reverse)</label>
+                <input type="file" accept="image/*" onchange="handleScanFile(event, 'back')" class="block w-full text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emeraldDeep file:text-white hover:file:bg-emeraldMid" />
+                <input id="inp-backUrl" type="text" placeholder="أو رابط الصورة URL..." class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-mono" />
+              </div>
+            </div>
+
+            <!-- Row 8: Notes -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="lblNotes">ملاحظات الفحص والتقييم (اختياري)</label>
+              <input id="inp-notes" type="text" oninput="refreshLivePreview()"
+                placeholder="Original crisp paper, vibrant colors / ورق أصلي مقرمش وألوان زاهية"
+                class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm" />
+            </div>
+
+            <div class="pt-2">
+              <button type="submit"
+                class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emeraldDark to-emeraldDeep hover:brightness-110 text-goldBright font-extrabold text-sm sm:text-base shadow-lg transition-all">
+                💾 <span data-i18n="saveCertBtn">حفظ الشهادة في السجل</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Live Front & Back Preview -->
+        <div class="lg:col-span-5 space-y-5">
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-goldBright/40 shadow-md space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-base font-extrabold text-emeraldDeep" data-i18n="livePreviewTitle">
+                معاينة حية لليبل (الوجه والظهر)
+              </h3>
+              <span id="live-dim-pill" class="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-emeraldDeep/10 text-emeraldDeep">110 × 25 mm</span>
+            </div>
+
+            <div class="overflow-x-auto py-3 px-2 bg-slate-100 rounded-2xl flex flex-col items-center gap-4 border border-slate-200">
+              <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">FRONT (الوجه الأمامي)</div>
+              <div id="preview-front-container" class="shadow-md"></div>
+
+              <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mt-1">BACK (الظهر + مكان الهولوغرام 20×10 ملم)</div>
+              <div id="preview-back-container" class="shadow-md"></div>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1">
+              <p class="font-bold">🖨️ <span data-i18n="printerTipTitle">توزيع A4 الكامل والطباعة على ورق 180 جرام (Epson EcoTank L3252):</span></p>
+              <p data-i18n="printerTipBody">
+                يوزّع النظام الليبلات بانتظام على كامل ورقة A4 (210×297 ملم) مع علامات قص دقيقة. اطبع الصفحة 1 (الوجه) ثم اقلب الورقة يدوياً لطباعة الصفحة 2 (الظهر المعكوس أفقياً) ليتطابق كل ظهر خلف وجهه بنسبة 100%.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Registry Table + Date Filter + Direct PDF Export & Print -->
+      <div class="bg-white rounded-3xl p-5 sm:p-7 border border-goldBright/40 shadow-md space-y-5">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div>
+            <h3 class="text-lg font-extrabold text-emeraldDeep" data-i18n="recordsTitle">
+              سجل الشهادات والطباعة وتصدير PDF حسب التاريخ
+            </h3>
+            <p class="text-xs text-slate-500" data-i18n="recordsSubtitle">
+              اختر «اليوم فقط» أو حدد تاريخاً لتحديد ليبلات ذلك اليوم تلقائياً، ثم حمّل ملف PDF كامل الورقة أو اطبع مباشرة.
+            </p>
+          </div>
+
+          <!-- Date Filter Controls -->
+          <div class="flex flex-wrap items-center gap-2 bg-slate-50 p-2.5 rounded-2xl border border-slate-200">
+            <button type="button" onclick="applyAdminDateFilter('TODAY')"
+              class="px-3 py-1.5 rounded-xl bg-emeraldDeep text-goldBright text-xs font-extrabold hover:bg-emeraldMid transition">
+              📅 <span data-i18n="todayOnlyBtn">اليوم فقط</span>
+            </button>
+            <input id="filter-date-input" type="date" onchange="applyAdminDateFilter('SPECIFIC')"
+              class="px-2.5 py-1.5 rounded-xl border border-slate-300 bg-white font-mono text-xs font-bold" />
+            <button type="button" onclick="applyAdminDateFilter('ALL')"
+              class="px-3 py-1.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold transition">
+              <span data-i18n="showAllDatesBtn">عرض الكل</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Batch Print, Direct Vector PDF & Email Actions -->
+        <div class="flex flex-wrap items-center justify-between gap-3 bg-goldPale/70 p-3.5 rounded-2xl border border-goldBright/50">
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="toggleSelectAllFiltered()" class="px-3.5 py-2 rounded-xl bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 text-xs font-bold">
+              ☑️ <span data-i18n="selectAllBtn">تحديد / إلغاء الكل</span>
+            </button>
+            <span class="text-xs font-bold text-emeraldDeep">
+              <span data-i18n="selectedLbl">المحدد للطباعة:</span>
+              <span id="selected-count-pill" class="px-2 py-0.5 rounded-full bg-emeraldDeep text-goldBright font-mono ms-1">0</span>
+            </span>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Direct Vector PDF Export (Never Blank on iOS Safari) -->
+            <button type="button" onclick="exportLabelsToPDF()"
+              class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-goldBright to-goldRich hover:brightness-105 text-emeraldDark text-xs sm:text-sm font-extrabold shadow transition flex items-center gap-1.5">
+              📄 <span data-i18n="exportPdfBtn">تصدير PDF مباشر (A4 كامل)</span>
+            </button>
+
+            <!-- Full A4 Sheet Preview & Native Print -->
+            <button type="button" onclick="openFullA4PreviewModal()"
+              class="px-4 py-2.5 rounded-xl bg-emeraldDeep hover:bg-emeraldMid text-goldBright text-xs sm:text-sm font-extrabold shadow transition flex items-center gap-1.5">
+              🖨️ <span data-i18n="batchPrintBtn">معاينة وطباعة A4</span>
+            </button>
+
+            <!-- Send Batch Summary via Email -->
+            <button type="button" onclick="emailSelectedBatch()"
+              class="px-4 py-2.5 rounded-xl bg-white border-2 border-emeraldDeep hover:bg-emeraldDeep hover:text-white text-emeraldDeep text-xs sm:text-sm font-extrabold shadow-sm transition flex items-center gap-1.5">
+              ✉️ <span data-i18n="sendBatchEmailBtn">إرسال عبر الإيميل</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Certificates Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-start border-collapse">
+            <thead>
+              <tr class="bg-emeraldDeep text-white text-xs uppercase">
+                <th class="p-3 rounded-ss-xl text-center w-10">✓</th>
+                <th class="p-3 text-start" data-i18n="thCert">الشهادة</th>
+                <th class="p-3 text-start" data-i18n="thNote">العملة والفئة</th>
+                <th class="p-3 text-center" data-i18n="thGrade">التقييم</th>
+                <th class="p-3 text-center" data-i18n="thDate">التاريخ</th>
+                <th class="p-3 text-center" data-i18n="thHolo">الهولوغرام</th>
+                <th class="p-3 rounded-se-xl text-center" data-i18n="thActions">إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="admin-certs-tbody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- PIN SECURITY GATE MODAL (PIN: 4040 — Triggered via #/admin-nga)       -->
+  <!-- ===================================================================== -->
+  <div id="pin-gate-modal" class="fixed inset-0 z-50 hidden bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 sm:p-7 border-2 border-goldBright shadow-2xl space-y-5 text-center">
+      <div class="w-14 h-14 mx-auto rounded-2xl bg-emeraldDeep text-goldBright flex items-center justify-center text-2xl shadow">
+        🔐
+      </div>
+      <div>
+        <h3 class="text-xl font-extrabold text-emeraldDeep" data-i18n="pinTitle">بوابة الإدارة والطباعة</h3>
+        <p class="text-xs sm:text-sm text-slate-600 mt-1" data-i18n="pinSubtitle">أدخل رمز الحماية السري (PIN) للمتابعة</p>
+      </div>
+      <form onsubmit="handlePinCheck(event)" class="space-y-4">
+        <input id="pin-code-input" type="password" inputmode="numeric" maxlength="6" required placeholder="••••"
+          class="w-full py-3 px-4 rounded-2xl border-2 border-slate-300 focus:border-emeraldDeep text-center font-mono text-2xl tracking-[0.5em] font-bold focus:outline-none" />
+        <p id="pin-error-msg" class="hidden text-xs font-bold text-red-600" data-i18n="pinError">رمز الحماية غير صحيح!</p>
+        <div class="flex gap-2.5">
+          <button type="button" onclick="cancelPinModal()" class="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm" data-i18n="cancelBtn">إلغاء</button>
+          <button type="submit" class="flex-1 py-2.5 rounded-xl bg-emeraldDeep hover:bg-emeraldMid text-goldBright font-extrabold text-sm" data-i18n="unlockBtn">دخول</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- FULL A4 DUPLEX PRINT & PDF PREVIEW OVERLAY (Direct Child of Body)     -->
+  <!-- ===================================================================== -->
+  <div id="print-sheet-root" class="fixed inset-0 z-50 hidden bg-slate-900/90 overflow-y-auto overflow-x-auto">
+    <!-- Top Toolbar (Hidden automatically during @media print) -->
+    <div id="print-modal-toolbar" class="sticky top-0 z-50 bg-emeraldDark text-white border-b border-goldBright px-4 py-3 shadow-xl">
+      <div class="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h3 class="font-extrabold text-goldBright text-base sm:text-lg" data-i18n="printModalTitle">
+            معاينة ورق A4 كامل (الوجه + الظهر المعكوس أفقياً)
+          </h3>
+          <p class="text-xs text-emerald-100" data-i18n="printModalHint">
+            تم توزيع الليبلات على كامل ورقة A4. اختر «تصدير PDF مباشر» لحفظ الملف دون صفحات بيضاء، أو «طباعة» مع ضبط النطاق على الكل.
+          </p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="exportLabelsToPDF()"
+            class="px-4 py-2 rounded-xl bg-gradient-to-r from-goldBright to-goldRich text-emeraldDark font-extrabold text-xs sm:text-sm shadow hover:brightness-105 flex items-center gap-1.5">
+            📄 <span data-i18n="exportPdfBtn">تصدير PDF مباشر</span>
+          </button>
+          <button onclick="window.print()"
+            class="px-4 py-2 rounded-xl bg-white text-emeraldDark font-extrabold text-xs sm:text-sm shadow hover:bg-goldPale flex items-center gap-1.5">
+            🖨️ <span data-i18n="printNowBtn">طباعة (A4 الكل)</span>
+          </button>
+          <button onclick="closeFullA4PreviewModal()"
+            class="px-3.5 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-white font-bold text-xs sm:text-sm" data-i18n="closeBtn">
+            إغلاق
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Container Holding All A4 Pages (Front & Mirrored Back Pairs) -->
+    <div id="print-pages-wrapper" class="py-6 px-3 flex flex-col items-center"></div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- LIGHTBOX MODAL FOR HIGH-RES BANKNOTE SCANS                            -->
+  <!-- ===================================================================== -->
+  <div id="scan-lightbox" onclick="closeScanLightbox()" class="fixed inset-0 z-50 hidden bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 cursor-zoom-out">
+    <div class="max-w-4xl w-full bg-white rounded-2xl overflow-hidden shadow-2xl border-2 border-goldBright" onclick="event.stopPropagation()">
+      <div class="bg-emeraldDark text-white px-4 py-3 flex items-center justify-between">
+        <span id="lightbox-title" class="font-bold text-sm text-goldBright">Banknote Scan</span>
+        <button onclick="closeScanLightbox()" class="text-white hover:text-goldBright font-bold text-lg px-2">✕</button>
+      </div>
+      <div class="p-3 bg-slate-900 flex items-center justify-center max-h-[80vh] overflow-auto">
+        <img id="lightbox-image" src="" alt="Scan" class="max-w-full max-h-[75vh] object-contain rounded" />
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- TOAST NOTIFICATION                                                    -->
+  <!-- ===================================================================== -->
+  <div id="toast-alert" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 hidden bg-emeraldDark text-goldBright border border-goldBright px-5 py-3 rounded-2xl shadow-2xl font-bold text-sm text-center"></div>
+
+  <!-- ===================================================================== -->
+  <!-- PUBLIC FOOTER (No Admin Links Exposed)                                -->
+  <!-- ===================================================================== -->
+  <footer class="bg-emeraldDark text-emerald-100/80 border-t border-goldBright/40 py-6 mt-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+      <div class="flex items-center gap-2">
+        <span class="font-serifDisplay font-bold text-goldBright text-sm">NGA</span>
+        <span>— Numismatic Grading Agency (<span class="font-mono text-goldPale">nganotes.com</span>)</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="mailto:submissions@nganotes.com" class="text-goldBright hover:underline font-mono">submissions@nganotes.com</a>
+        <span data-i18n="footerCopy">جميع الحقوق محفوظة © 2026</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ===================================================================== -->
+  <!-- JAVASCRIPT ENGINE (State, Population, Vector jsPDF & A4 Duplex Grid)  -->
+  <!-- ===================================================================== -->
+  <script type="module">
+    // Optional Google Firebase Firestore Cloud Configuration
+    const FIREBASE_CONFIG = {
+      apiKey: "",
+      authDomain: "",
+      projectId: "",
+      storageBucket: "",
+      messagingSenderId: "",
+      appId: ""
+    };
+
+    let db = null;
+    if (FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.projectId) {
+      try {
+        const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+        const { getFirestore, collection, doc, setDoc, deleteDoc, getDocs } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+        const app = initializeApp(FIREBASE_CONFIG);
+        db = getFirestore(app);
+        window._fb = { collection, doc, setDoc, deleteDoc, getDocs };
+        const pill = document.getElementById("fb-status-pill");
+        if (pill) {
+          pill.textContent = "☁️ Firebase Cloud Connected";
+          pill.className = "px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-xs font-bold";
+        }
+      } catch (err) {
+        console.warn("Firebase init skipped:", err);
+      }
+    }
+
+    // Constants
+    const ADMIN_PIN = "4040";
+    const SECRET_HASH = "#/admin-nga";
+    const ADMIN_EMAIL = "submissions@nganotes.com";
+    const STORAGE_KEY = "nga_registry_v3";
+
+    let lang = "ar";
+    let adminAuthenticated = false;
+    let activeDesignation = ""; // "" | "EPQ" | "NET"
+    let selectedCertIds = new Set();
+    let dateFilterMode = "ALL"; // "ALL" | "TODAY" | "SPECIFIC"
+    let specificFilterDate = "";
+
+    function todayISO() {
+      const d = new Date();
+      return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split("T")[0];
+    }
+
+    // Localization Strings
+    const dict = {
+      ar: {
+        brandSubtitle: "وكالة تقييم وتوثيق العملات الورقية",
+        navVerify: "التحقق من الشهادة",
+        navRegistry: "العملات المقيّمة",
+        navSubmit: "قيّم معنا",
+        heroBadge: "بوابة التحقق الرسمية من شهادات العملات الورقية",
+        heroTitle: "تحقق من أصالة وتقييم العملة",
+        heroSubtitle: "أدخل رقم الشهادة المطبوع على الليبل أو امسح رمز الاستجابة السريعة (QR) لعرض تفاصيل التقييم، ترتيب الندرة (TOP POP)، وصور الوجه والظهر عالية الدقة.",
+        searchBtn: "فحص الشهادة",
+        trySamples: "أمثلة للتجربة السريعة:",
+        notFoundTitle: "لم يتم العثور على رقم الشهادة",
+        notFoundDesc: "تأكد من كتابة الرقم بشكل صحيح كما هو مطبوع على الليبل (مثال: NGA-1001).",
+        feat1Title: "معايير تقييم عالمية (1–70)",
+        feat1Desc: "نعتمد مقياس شيلدون العالمي لتقييم حالة الورق والألوان والحواف، مع تمييز الأوراق ذات الجودة الاستثنائية بختم EPQ.",
+        feat2Title: "هولوغرام أمني مرقم تسلسلياً",
+        feat2Desc: "كل حافظة مزودة بختم هولوغرام ذهبي غير قابل للنزع (20×10 ملم) برقم تسلسلي فريد مرتبط بقاعدة البيانات لمنع التلاعب.",
+        feat3Title: "سجل التعداد وتصنيف TOP POP",
+        feat3Desc: "يعرض النظام إحصائية دقيقة لعدد القطع المقيّمة في كل درجة وعدد القطع الأعلى تقييماً لكل إصدار.",
+        regTitle: "سجل العملات المقيّمة وتقرير الندرة",
+        regSubtitle: "استعرض جميع العملات الورقية الموثقة لدى NGA مع إحصائيات التقييم وشارات أعلى تقييم (TOP POP).",
+        allCountries: "جميع الدول",
+        subBadge: "خدمات التقييم والتغليف الاحترافي",
+        subTitle: "قيّم عملاتك الورقية مع NGA",
+        subSubtitle: "اختر الباقة المناسبة لقيمة عملاتك وأرسل طلب التقييم مباشرة عبر البريد الإلكتروني ليتواصل معك فريق الاستقبال وتزويدك بعنوان الإرسال ورقم المتابعة.",
+        tier1Time: "٣٠ يوم عمل",
+        tier1Name: "الباقة الاقتصادية",
+        tier1Desc: "مناسبة للعملات الورقية القياسية التي تصل قيمتها التقديرية حتى $300.",
+        mostPopular: "الأكثر طلباً",
+        tier2Time: "١٥ يوم عمل",
+        tier2Name: "الباقة القياسية",
+        tier2Desc: "للعملات التذكارية والإصدارات التاريخية التي تصل قيمتها حتى $1,000.",
+        tier3Time: "٥ أيام عمل",
+        tier3Name: "الباقة السريعة",
+        tier3Desc: "أولوية الفحص السريع للعملات النادرة التي تصل قيمتها حتى $3,000.",
+        tier4Time: "٤٨ ساعة",
+        tier4Name: "باقة النوادر (عاجل)",
+        tier4Desc: "مخصصة للنوادر والعملات المرتفعة القيمة (أكثر من $3,000) مع معالجة فورية.",
+        perNote: "/ للعملة الواحدة",
+        selectTierBtn: "اختيار الباقة",
+        subFormTitle: "نموذج طلب تقييم والتواصل عبر البريد الإلكتروني",
+        subFormHint: "سيتم تجهيز رسالة رسمية بكل تفاصيل طلبك لإرسالها مباشرة إلى بريد الإدارة: submissions@nganotes.com",
+        estTotalLbl: "التكلفة التقديرية:",
+        subClientName: "الاسم الكامل *",
+        subClientEmail: "البريد الإلكتروني للعميل *",
+        subTierSelect: "الباقة المختارة *",
+        subQty: "عدد العملات *",
+        subCountry: "الدولة / المدينة *",
+        subNotesList: "قائمة العملات المراد تقييمها (الدولة، الفئة، السنة، الرقم التسلسلي) *",
+        sendEmailBtn: "إرسال طلب التقييم عبر الإيميل",
+        copyReqBtn: "نسخ نص الطلب",
+        adminTitle: "لوحة إدارة الشهادات وطباعة الليبلات وتصدير PDF (A4 Duplex)",
+        newCertBtn: "شهادة جديدة",
+        lockBtn: "قفل والخروج للرئيسية",
+        formAddTitle: "تسجيل / تعديل عملة مقيّمة",
+        lblCertNum: "رقم الشهادة (Cert #) *",
+        lblHoloSerial: "رقم الهولوغرام (20×10mm)",
+        lblGradeDate: "تاريخ التقييم والطباعة *",
+        lblCountryEn: "الدولة بالإنجليزية (لليبل) *",
+        lblCountryAr: "الدولة بالعربية (للبوابة)",
+        lblDenomEn: "الفئة بالإنجليزية (لليبل) *",
+        lblDenomAr: "الفئة بالعربية (للبوابة)",
+        lblYear: "سنة الإصدار *",
+        lblPick: "رقم الكتالوج (أرقام وحروف فقط)",
+        lblSerial: "الرقم التسلسلي للعملة *",
+        lblGrade: "درجة التقييم (Grade 1-70) *",
+        lblDesignation: "الختم الإضافي تحت رقم التقييم (اختياري):",
+        designationHint: "اضغط على EPQ أو NET لإظهاره تحت رقم التقييم في التصميم، أو اتركهما غير مفعلين للطباعة بدونهما.",
+        lblSizePreset: "مقاس الليبل (ملم)",
+        sizeStandard: "قياسي (110 × 25 ملم)",
+        sizeLarge: "كبير (140 × 30 ملم)",
+        sizeCompact: "مزدوج صفّين (90 × 24 ملم)",
+        sizeCustom: "مقاس مخصص...",
+        lblWidthMm: "العرض (mm)",
+        lblHeightMm: "الارتفاع (mm)",
+        lblFrontImg: "صورة وجه العملة (Obverse)",
+        lblBackImg: "صورة ظهر العملة (Reverse)",
+        lblNotes: "ملاحظات الفحص والتقييم (اختياري)",
+        saveCertBtn: "حفظ الشهادة في السجل",
+        livePreviewTitle: "معاينة حية لليبل (الوجه والظهر)",
+        printerTipTitle: "توزيع A4 الكامل والطباعة على ورق 180 جرام (Epson EcoTank L3252):",
+        printerTipBody: "يوزّع النظام الليبلات بانتظام على كامل ورقة A4 (210×297 ملم) مع علامات قص دقيقة. اطبع الصفحة 1 (الوجه) ثم اقلب الورقة يدوياً لطباعة الصفحة 2 (الظهر المعكوس أفقياً) ليتطابق كل ظهر خلف وجهه بنسبة 100%.",
+        recordsTitle: "سجل الشهادات والطباعة وتصدير PDF حسب التاريخ",
+        recordsSubtitle: "اختر «اليوم فقط» أو حدد تاريخاً لتحديد ليبلات ذلك اليوم تلقائياً، ثم حمّل ملف PDF كامل الورقة أو اطبع مباشرة.",
+        todayOnlyBtn: "اليوم فقط",
+        showAllDatesBtn: "عرض الكل",
+        selectAllBtn: "تحديد / إلغاء الكل",
+        selectedLbl: "المحدد للطباعة:",
+        exportPdfBtn: "تصدير PDF مباشر (A4 كامل)",
+        batchPrintBtn: "معاينة وطباعة A4",
+        sendBatchEmailBtn: "إرسال عبر الإيميل",
+        thCert: "الشهادة",
+        thNote: "العملة والفئة",
+        thGrade: "التقييم",
+        thDate: "التاريخ",
+        thHolo: "الهولوغرام",
+        thActions: "إجراءات",
+        pinTitle: "بوابة الإدارة والطباعة",
+        pinSubtitle: "أدخل رمز الحماية السري (PIN) للمتابعة",
+        pinError: "رمز الحماية غير صحيح!",
+        cancelBtn: "إلغاء",
+        unlockBtn: "دخول",
+        printModalTitle: "معاينة ورق A4 كامل (الوجه + الظهر المعكوس أفقياً)",
+        printModalHint: "تم توزيع الليبلات على كامل ورقة A4. اختر «تصدير PDF مباشر» لحفظ الملف دون صفحات بيضاء، أو «طباعة» مع ضبط النطاق على الكل.",
+        printNowBtn: "طباعة (A4 الكل)",
+        closeBtn: "إغلاق",
+        footerCopy: "جميع الحقوق محفوظة © 2026",
+        verifiedAuthentic: "شهادة موثقة ومعتمدة من NGA",
+        obverseLabel: "وجه العملة (Obverse)",
+        reverseLabel: "ظهر العملة (Reverse)",
+        clickToZoom: "اضغط للتكبير",
+        specCountry: "الدولة",
+        specDenom: "الفئة",
+        specYear: "سنة الإصدار",
+        specPick: "رقم الكتالوج",
+        specSerial: "الرقم التسلسلي للعملة",
+        specHolo: "رقم الهولوغرام الأمني",
+        specNotes: "ملاحظات التقييم"
+      },
+      en: {
+        brandSubtitle: "Numismatic Grading Agency",
+        navVerify: "Verify Cert",
+        navRegistry: "Population Report",
+        navSubmit: "Grade With Us",
+        heroBadge: "Official Banknote Certification & Verification Portal",
+        heroTitle: "Verify Banknote Authenticity & Grade",
+        heroSubtitle: "Enter the certification number printed on the holder label or scan the QR code to view grading details, TOP POP status, and high-resolution scans.",
+        searchBtn: "Verify Note",
+        trySamples: "Quick sample certificates:",
+        notFoundTitle: "Certificate Number Not Found",
+        notFoundDesc: "Please check the certification number printed on the label (e.g., NGA-1001).",
+        feat1Title: "International 1–70 Grading Scale",
+        feat1Desc: "Strict adherence to the Sheldon 70-point scale, awarding EPQ designation to notes with original paper quality.",
+        feat2Title: "Serialized Security Hologram",
+        feat2Desc: "Each holder features a tamper-evident 20×10mm gold hologram with a unique serial number linked to our registry.",
+        feat3Title: "Population Report & TOP POP",
+        feat3Desc: "Real-time population statistics showing exact counts in the same grade and higher grades for every catalog issue.",
+        regTitle: "Graded Banknotes Registry & Population Report",
+        regSubtitle: "Browse all banknotes certified by NGA with grade population breakdowns and TOP POP badges.",
+        allCountries: "All Countries",
+        subBadge: "Professional Certification & Encapsulation",
+        subTitle: "Submit Your Banknotes to NGA",
+        subSubtitle: "Select the grading tier matching your banknote value and submit your request via email so our team can coordinate shipping and tracking.",
+        tier1Time: "30 Business Days",
+        tier1Name: "Economy Tier",
+        tier1Desc: "Ideal for standard banknotes with an estimated value up to $300.",
+        mostPopular: "Most Popular",
+        tier2Time: "15 Business Days",
+        tier2Name: "Standard Tier",
+        tier2Desc: "For commemorative and classic issues valued up to $1,000.",
+        tier3Time: "5 Business Days",
+        tier3Name: "Express Tier",
+        tier3Desc: "Priority turnaround for scarce notes valued up to $3,000.",
+        tier4Time: "48 Hours",
+        tier4Name: "Rarities VIP",
+        tier4Desc: "Dedicated handling for high-value rarities over $3,000.",
+        perNote: "/ per banknote",
+        selectTierBtn: "Select Tier",
+        subFormTitle: "Grading Submission & Email Inquiry Form",
+        subFormHint: "Prepares a formatted submission request ready to email directly to: submissions@nganotes.com",
+        estTotalLbl: "Estimated Total:",
+        subClientName: "Full Name *",
+        subClientEmail: "Client Email Address *",
+        subTierSelect: "Selected Tier *",
+        subQty: "Number of Notes *",
+        subCountry: "Country / City *",
+        subNotesList: "List of Banknotes to Grade (Country, Denomination, Year, Serial #) *",
+        sendEmailBtn: "Send Submission via Email",
+        copyReqBtn: "Copy Submission Text",
+        adminTitle: "Certificate Registry & Full A4 Duplex Print / PDF Studio",
+        newCertBtn: "New Certificate",
+        lockBtn: "Lock & Exit to Public",
+        formAddTitle: "Add / Edit Graded Banknote",
+        lblCertNum: "Certification Number (Cert #) *",
+        lblHoloSerial: "Hologram Serial # (20×10mm)",
+        lblGradeDate: "Grading & Print Date *",
+        lblCountryEn: "Country in English (For Label) *",
+        lblCountryAr: "Country in Arabic (For Portal)",
+        lblDenomEn: "Denomination in English (For Label) *",
+        lblDenomAr: "Denomination in Arabic (For Portal)",
+        lblYear: "Issue Year *",
+        lblPick: "Catalog Code (Alphanumeric Only)",
+        lblSerial: "Banknote Serial # *",
+        lblGrade: "Numeric Grade (1-70) *",
+        lblDesignation: "Designation Badge Under Grade (Optional):",
+        designationHint: "Click EPQ or NET to display directly under the grade number, or leave unselected for standard grade.",
+        lblSizePreset: "Label Size Preset (mm)",
+        sizeStandard: "Standard (110 × 25 mm)",
+        sizeLarge: "Large (140 × 30 mm)",
+        sizeCompact: "2-Column Compact (90 × 24 mm)",
+        sizeCustom: "Custom Size...",
+        lblWidthMm: "Width (mm)",
+        lblHeightMm: "Height (mm)",
+        lblFrontImg: "Obverse Scan (Front Image)",
+        lblBackImg: "Reverse Scan (Back Image)",
+        lblNotes: "Grading Comments / Notes (Optional)",
+        saveCertBtn: "Save Certificate to Registry",
+        livePreviewTitle: "Live Label Preview (Front & Back)",
+        printerTipTitle: "Full A4 Sheet & 180gsm Duplex Guide (Epson EcoTank L3252):",
+        printerTipBody: "Labels automatically distribute across the full A4 page (210×297mm) with cut marks. Print Page 1 (Fronts), then flip manually to print Page 2 (horizontally mirrored Backs) for 100% alignment.",
+        recordsTitle: "Certificate Registry & Date-Filtered A4 Print / PDF Export",
+        recordsSubtitle: "Filter by 'Today Only' or pick a specific date to select that day's labels for direct PDF export or printing.",
+        todayOnlyBtn: "Today Only",
+        showAllDatesBtn: "Show All",
+        selectAllBtn: "Select / Deselect All",
+        selectedLbl: "Selected for Batch:",
+        exportPdfBtn: "Direct PDF Export (Full A4)",
+        batchPrintBtn: "Preview & Print A4",
+        sendBatchEmailBtn: "Send via Email",
+        thCert: "Cert #",
+        thNote: "Country & Denomination",
+        thGrade: "Grade",
+        thDate: "Date",
+        thHolo: "Hologram",
+        thActions: "Actions",
+        pinTitle: "Admin & Print Security Gate",
+        pinSubtitle: "Enter your 4-digit security PIN to unlock",
+        pinError: "Incorrect PIN code!",
+        cancelBtn: "Cancel",
+        unlockBtn: "Unlock",
+        printModalTitle: "Full A4 Duplex Sheet Preview (Fronts + Mirrored Backs)",
+        printModalHint: "Labels are distributed across the full A4 sheet. Click 'Direct PDF Export' to save without blank pages, or 'Print' with Range set to All.",
+        printNowBtn: "Print (All A4 Pages)",
+        closeBtn: "Close",
+        footerCopy: "All Rights Reserved © 2026",
+        verifiedAuthentic: "Verified Authentic by NGA Registry",
+        obverseLabel: "Obverse (Front)",
+        reverseLabel: "Reverse (Back)",
+        clickToZoom: "Click to Inspect",
+        specCountry: "Country",
+        specDenom: "Denomination",
+        specYear: "Issue Year",
+        specPick: "Catalog Number",
+        specSerial: "Banknote Serial #",
+        specHolo: "Hologram Serial #",
+        specNotes: "Grading Notes"
+      }
+    };
+
+    // Sample Banknote SVG Generator
+    function makeSampleSvg(title, serial, color, label) {
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="380" viewBox="0 0 800 380">
+        <defs>
+          <pattern id="pat" width="20" height="20" patternUnits="userSpaceOnUse">
+            <circle cx="10" cy="10" r="8" fill="none" stroke="${color}" stroke-opacity="0.14" stroke-width="1"/>
+          </pattern>
+        </defs>
+        <rect width="800" height="380" rx="14" fill="#faf7ee" stroke="${color}" stroke-width="8"/>
+        <rect x="18" y="18" width="764" height="344" rx="8" fill="url(#pat)" stroke="#d4af37" stroke-width="2.5"/>
+        <circle cx="400" cy="190" r="105" fill="none" stroke="${color}" stroke-opacity="0.22" stroke-width="3" stroke-dasharray="8 4"/>
+        <text x="400" y="135" font-family="Georgia, serif" font-size="25" font-weight="bold" fill="${color}" text-anchor="middle">${title}</text>
+        <text x="400" y="185" font-family="monospace" font-size="21" font-weight="bold" fill="#8a6812" text-anchor="middle">${label}</text>
+        <text x="400" y="245" font-family="monospace" font-size="24" font-weight="bold" fill="#b91c1c" text-anchor="middle">S/N: ${serial}</text>
+        <text x="400" y="325" font-family="sans-serif" font-size="13" fill="#64748b" text-anchor="middle">NGA DIGITAL ARCHIVE SCAN — NGANOTES.COM</text>
+      </svg>`;
+      return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+    }
+
+    const TODAY = todayISO();
+
+    const INITIAL_DATA = [
+      {
+        certNum: "NGA-1001",
+        holoSerial: "041566",
+        gradedDate: TODAY,
+        countryEn: "SAUDI ARABIA",
+        countryAr: "المملكة العربية السعودية",
+        denomEn: "100 RIYALS",
+        denomAr: "١٠٠ ريال سعودي",
+        year: "AH1379 / 1961",
+        pick: "10a",
+        serial: "A/1 482910",
+        grade: "67",
+        designation: "EPQ",
+        widthMm: 110,
+        heightMm: 25,
+        notes: "Finest known example in NGA registry; original crisp paper.",
+        frontImg: makeSampleSvg("SAUDI ARABIAN MONETARY AGENCY - 100 RIYALS", "A/1 482910", "#064e3b", "OBVERSE SCAN (1961)"),
+        backImg: makeSampleSvg("SAUDI ARABIAN MONETARY AGENCY - 100 RIYALS", "A/1 482910", "#064e3b", "REVERSE SCAN (1961)")
+      },
+      {
+        certNum: "NGA-1002",
+        holoSerial: "041567",
+        gradedDate: TODAY,
+        countryEn: "SAUDI ARABIA",
+        countryAr: "المملكة العربية السعودية",
+        denomEn: "100 RIYALS",
+        denomAr: "١٠٠ ريال سعودي",
+        year: "AH1379 / 1961",
+        pick: "10a",
+        serial: "A/4 719302",
+        grade: "65",
+        designation: "EPQ",
+        widthMm: 110,
+        heightMm: 25,
+        notes: "Gem Uncirculated with bright original colors.",
+        frontImg: makeSampleSvg("SAUDI ARABIAN MONETARY AGENCY - 100 RIYALS", "A/4 719302", "#064e3b", "OBVERSE SCAN (1961)"),
+        backImg: makeSampleSvg("SAUDI ARABIAN MONETARY AGENCY - 100 RIYALS", "A/4 719302", "#064e3b", "REVERSE SCAN (1961)")
+      },
+      {
+        certNum: "NGA-1003",
+        holoSerial: "041568",
+        gradedDate: "2026-11-18",
+        countryEn: "SAUDI ARABIA",
+        countryAr: "المملكة العربية السعودية",
+        denomEn: "100 RIYALS",
+        denomAr: "١٠٠ ريال سعودي",
+        year: "AH1379 / 1961",
+        pick: "10a",
+        serial: "A/2 190441",
+        grade: "65",
+        designation: "",
+        widthMm: 110,
+        heightMm: 25,
+        notes: "Choice Uncirculated with light handling.",
+        frontImg: makeSampleSvg("SAUDI ARABIAN MONETARY AGENCY - 100 RIYALS", "A/2 190441", "#064e3b", "OBVERSE SCAN (1961)"),
+        backImg: makeSampleSvg("SAUDI ARABIAN MONETARY AGENCY - 100 RIYALS", "A/2 190441", "#064e3b", "REVERSE SCAN (1961)")
+      },
+      {
+        certNum: "NGA-1004",
+        holoSerial: "041569",
+        gradedDate: "2026-11-15",
+        countryEn: "EGYPT",
+        countryAr: "جمهورية مصر العربية",
+        denomEn: "10 POUNDS",
+        denomAr: "١٠ جنيهات مصرية",
+        year: "1964",
+        pick: "39b",
+        serial: "G/42 903114",
+        grade: "58",
+        designation: "NET",
+        widthMm: 140,
+        heightMm: 30,
+        notes: "Minor corner tip restoration; sharp embossing.",
+        frontImg: makeSampleSvg("CENTRAL BANK OF EGYPT - 10 POUNDS", "G/42 903114", "#0f5132", "OBVERSE SCAN (1964)"),
+        backImg: makeSampleSvg("CENTRAL BANK OF EGYPT - 10 POUNDS", "G/42 903114", "#0f5132", "REVERSE SCAN (1964)")
+      }
+    ];
+
+    let records = [];
+
+    // =========================================================================
+    // PICK NUMBER FORMATTER & POPULATION ANALYTICS
+    // =========================================================================
+    function cleanPickCode(raw) {
+      return String(raw || "")
+        .replace(/^pick\s*number\s*:?\s*/i, "")
+        .replace(/^pick\s*#?\s*/i, "")
+        .trim();
+    }
+
+    function formatPickFull(raw) {
+      const code = cleanPickCode(raw);
+      return code ? `Pick Number: ${code}` : "";
+    }
+
+    function getPopulationStats(note) {
+      const cCountry = (note.countryEn || "").trim().toUpperCase();
+      const cDenom = (note.denomEn || "").trim().toUpperCase();
+      const cYear = (note.year || "").trim().toUpperCase();
+      const cPick = cleanPickCode(note.pick).toUpperCase();
+      const targetGrade = parseFloat(String(note.grade).replace(/[^\d.]/g, "")) || 0;
+
+      const sameIssue = records.filter(r =>
+        (r.countryEn || "").trim().toUpperCase() === cCountry &&
+        (r.denomEn || "").trim().toUpperCase() === cDenom &&
+        (r.year || "").trim().toUpperCase() === cYear &&
+        cleanPickCode(r.pick).toUpperCase() === cPick
+      );
+
+      let inSameGrade = 0;
+      let gradedHigher = 0;
+
+      sameIssue.forEach(item => {
+        const g = parseFloat(String(item.grade).replace(/[^\d.]/g, "")) || 0;
+        if (g === targetGrade) inSameGrade++;
+        else if (g > targetGrade) gradedHigher++;
+      });
+
+      const isTopPop = sameIssue.length > 0 && gradedHigher === 0 && targetGrade > 0;
+      return { total: sameIssue.length, inSameGrade, gradedHigher, isTopPop };
+    }
+
+    // =========================================================================
+    // STORAGE SYNC
+    // =========================================================================
+    async function initStorage() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        try {
+          records = JSON.parse(raw);
+        } catch {
+          records = [...INITIAL_DATA];
+        }
+      } else {
+        records = [...INITIAL_DATA];
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+      }
+
+      if (db && window._fb) {
+        try {
+          const snap = await window._fb.getDocs(window._fb.collection(db, "nga_certificates"));
+          if (!snap.empty) {
+            const list = [];
+            snap.forEach(docSnap => list.push(docSnap.data()));
+            records = list;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+          }
+        } catch (err) {
+          console.warn("Cloud fetch fallback:", err);
+        }
+      }
+    }
+
+    async function saveRecordToStore(obj) {
+      const idx = records.findIndex(r => r.certNum.toUpperCase() === obj.certNum.toUpperCase());
+      if (idx >= 0) records[idx] = obj;
+      else records.unshift(obj);
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+      if (db && window._fb) {
+        try {
+          await window._fb.setDoc(window._fb.doc(db, "nga_certificates", obj.certNum.toUpperCase()), obj);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+
+    // =========================================================================
+    // LANGUAGE & NAVIGATION
+    // =========================================================================
+    window.toggleLanguage = function () {
+      lang = lang === "ar" ? "en" : "ar";
+      document.documentElement.lang = lang;
+      document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+      document.getElementById("lang-btn-text").textContent = lang === "ar" ? "EN" : "عربي";
+
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const k = el.getAttribute("data-i18n");
+        if (dict[lang][k]) el.textContent = dict[lang][k];
+      });
+
+      renderPopulationReport();
+      renderAdminTable();
+      const q = document.getElementById("verify-search-input").value.trim();
+      if (q && !document.getElementById("verify-result-box").classList.contains("hidden")) {
+        verifyCertificate(q);
+      }
+    };
+
+    window.switchPublicTab = function (tabName) {
+      if (window.location.hash.toLowerCase() === SECRET_HASH) {
+        history.replaceState(null, "", window.location.pathname + window.location.search);
+      }
+
+      ["verify", "registry", "submit", "admin"].forEach(sec => {
+        document.getElementById(`section-${sec}`).classList.add("hidden");
+      });
+      document.getElementById(`section-${tabName}`).classList.remove("hidden");
+
+      ["verify", "registry", "submit"].forEach(t => {
+        const btn = document.getElementById(`tab-${t}`);
+        if (!btn) return;
+        btn.className = t === tabName
+          ? "px-2.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-goldBright text-emeraldDark shadow whitespace-nowrap"
+          : "px-2.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-emeraldMid hover:bg-emerald-700 text-white border border-goldBright/30 whitespace-nowrap";
+      });
+
+      if (tabName === "registry") {
+        populateCountryOptions();
+        renderPopulationReport();
+      }
+    };
+
+    function checkSecretRoute() {
+      const isHash = window.location.hash.toLowerCase() === SECRET_HASH;
+      const isQuery = new URLSearchParams(window.location.search).get("admin") === "1";
+      if (isHash || isQuery) {
+        if (adminAuthenticated) {
+          openAdminView();
+        } else {
+          document.getElementById("pin-code-input").value = "";
+          document.getElementById("pin-error-msg").classList.add("hidden");
+          document.getElementById("pin-gate-modal").classList.remove("hidden");
+          setTimeout(() => document.getElementById("pin-code-input").focus(), 100);
+        }
+      }
+    }
+
+    function openAdminView() {
+      ["verify", "registry", "submit"].forEach(sec => document.getElementById(`section-${sec}`).classList.add("hidden"));
+      document.getElementById("section-admin").classList.remove("hidden");
+      renderAdminTable();
+      refreshLivePreview();
+    }
+
+    window.cancelPinModal = function () {
+      document.getElementById("pin-gate-modal").classList.add("hidden");
+      switchPublicTab("verify");
+    };
+
+    window.handlePinCheck = function (e) {
+      e.preventDefault();
+      const val = document.getElementById("pin-code-input").value.trim();
+      if (val === ADMIN_PIN) {
+        adminAuthenticated = true;
+        document.getElementById("pin-gate-modal").classList.add("hidden");
+        openAdminView();
+        toast(lang === "ar" ? "تم فتح لوحة الإدارة والطباعة بنجاح" : "Admin & Print Studio Unlocked");
+      } else {
+        document.getElementById("pin-error-msg").classList.remove("hidden");
+        document.getElementById("pin-code-input").value = "";
+      }
+    };
+
+    window.exitAdminPortal = function () {
+      adminAuthenticated = false;
+      switchPublicTab("verify");
+    };
+
+    window.addEventListener("hashchange", checkSecretRoute);
+
+    // =========================================================================
+    // GRADE WITH US (PRICING & EMAIL SUBMISSION)
+    // =========================================================================
+    window.chooseTier = function (tier, price) {
+      const sel = document.getElementById("inq-tier");
+      sel.value = tier;
+      updateSubmissionTotal();
+      sel.scrollIntoView({ behavior: "smooth", block: "center" });
+      toast(lang === "ar" ? `تم اختيار باقة ${tier} ($${price})` : `Selected ${tier} ($${price})`);
+    };
+
+    window.updateSubmissionTotal = function () {
+      const sel = document.getElementById("inq-tier");
+      const price = Number(sel.options[sel.selectedIndex]?.getAttribute("data-price")) || 30;
+      const qty = Math.max(1, Number(document.getElementById("inq-qty").value) || 1);
+      document.getElementById("sub-cost-badge").textContent = `$${price * qty}`;
+    };
+
+    function getSubmissionEmailData() {
+      const name = document.getElementById("inq-name").value.trim();
+      const email = document.getElementById("inq-email").value.trim();
+      const sel = document.getElementById("inq-tier");
+      const tier = sel.value;
+      const price = Number(sel.options[sel.selectedIndex]?.getAttribute("data-price")) || 30;
+      const qty = Math.max(1, Number(document.getElementById("inq-qty").value) || 1);
+      const city = document.getElementById("inq-city").value.trim();
+      const notes = document.getElementById("inq-notes").value.trim();
+
+      const subject = `NGA Grading Submission — ${name} (${qty} Notes | ${tier})`;
+      const body = [
+        `NGA — Numismatic Grading Agency (nganotes.com)`,
+        `Banknote Grading Submission Request`,
+        `--------------------------------------------------`,
+        `Client Name: ${name}`,
+        `Client Email: ${email}`,
+        `Location: ${city}`,
+        `Selected Tier: ${tier} ($${price} / note)`,
+        `Quantity: ${qty} note(s)`,
+        `Estimated Total: $${price * qty}`,
+        `--------------------------------------------------`,
+        `Banknotes List:`,
+        `${notes}`,
+        `--------------------------------------------------`,
+        `Please reply with shipping instructions and submission tracking ID.`
+      ].join("\n");
+
+      return { subject, body };
+    }
+
+    window.handleSubmissionEmail = function (e) {
+      e.preventDefault();
+      const { subject, body } = getSubmissionEmailData();
+      window.location.href = `mailto:${ADMIN_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    };
+
+    window.copySubmissionInquiry = function () {
+      const { subject, body } = getSubmissionEmailData();
+      const ta = document.createElement("textarea");
+      ta.value = `To: ${ADMIN_EMAIL}\nSubject: ${subject}\n\n${body}`;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      toast(lang === "ar" ? "تم نسخ نص طلب التقييم وبريد الإدارة" : "Submission text copied");
+    };
+
+    // =========================================================================
+    // POPULATION REPORT RENDERER
+    // =========================================================================
+    function populateCountryOptions() {
+      const sel = document.getElementById("pop-country-select");
+      const prev = sel.value;
+      const countries = [...new Set(records.map(r => r.countryEn.toUpperCase()))].sort();
+      sel.innerHTML = `<option value="ALL">${dict[lang].allCountries}</option>`;
+      countries.forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c;
+        opt.textContent = c;
+        sel.appendChild(opt);
+      });
+      if ([...sel.options].some(o => o.value === prev)) sel.value = prev;
+    }
+
+    window.renderPopulationReport = function () {
+      const q = (document.getElementById("pop-search-input")?.value || "").trim().toUpperCase();
+      const country = document.getElementById("pop-country-select")?.value || "ALL";
+
+      const filtered = records.filter(r => {
+        if (country !== "ALL" && r.countryEn.toUpperCase() !== country) return false;
+        if (!q) return true;
+        return (
+          r.certNum.toUpperCase().includes(q) ||
+          r.countryEn.toUpperCase().includes(q) ||
+          (r.countryAr || "").includes(q) ||
+          r.denomEn.toUpperCase().includes(q) ||
+          (r.denomAr || "").includes(q) ||
+          r.year.toUpperCase().includes(q) ||
+          cleanPickCode(r.pick).toUpperCase().includes(q)
+        );
+      });
+
+      const totalNotes = records.length;
+      const topPops = records.filter(r => getPopulationStats(r).isTopPop).length;
+      const epqs = records.filter(r => r.designation === "EPQ").length;
+      const countriesCnt = new Set(records.map(r => r.countryEn.toUpperCase())).size;
+
+      document.getElementById("pop-kpi-grid").innerHTML = `
+        <div class="p-3.5 rounded-2xl bg-emeraldDeep text-white text-center">
+          <div class="text-xs text-emerald-100">${lang === "ar" ? "إجمالي العملات المقيّمة" : "Total Graded Notes"}</div>
+          <div class="font-serifDisplay font-extrabold text-2xl text-goldBright mt-0.5">${totalNotes}</div>
+        </div>
+        <div class="p-3.5 rounded-2xl bg-goldPale border border-goldBright/60 text-center">
+          <div class="text-xs text-amber-900 font-bold">${lang === "ar" ? "أعلى تقييم (TOP POP)" : "TOP POP Certified"}</div>
+          <div class="font-serifDisplay font-extrabold text-2xl text-emeraldDeep mt-0.5">${topPops}</div>
+        </div>
+        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-center">
+          <div class="text-xs text-slate-600 font-bold">${lang === "ar" ? "حاصلة على EPQ" : "EPQ Designated"}</div>
+          <div class="font-serifDisplay font-extrabold text-2xl text-emeraldDeep mt-0.5">${epqs}</div>
+        </div>
+        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-center">
+          <div class="text-xs text-slate-600 font-bold">${lang === "ar" ? "الدول المدرجة" : "Countries Listed"}</div>
+          <div class="font-serifDisplay font-extrabold text-2xl text-emeraldDeep mt-0.5">${countriesCnt}</div>
+        </div>
+      `;
+
+      const grid = document.getElementById("pop-cards-grid");
+      grid.innerHTML = "";
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div class="col-span-full text-center py-8 text-slate-500 font-bold">${lang === "ar" ? "لا توجد عملات مطابقة" : "No matching banknotes"}</div>`;
+        return;
+      }
+
+      filtered.forEach(r => {
+        const st = getPopulationStats(r);
+        const pickTxt = formatPickFull(r.pick);
+        const cName = lang === "ar" && r.countryAr ? `${r.countryAr} — ${r.countryEn}` : r.countryEn;
+        const dName = lang === "ar" && r.denomAr ? `${r.denomAr} (${r.denomEn})` : r.denomEn;
+
+        const topBadge = st.isTopPop
+          ? `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-goldBright to-goldRich text-emeraldDark text-[11px] font-extrabold shadow-sm">👑 ${lang === "ar" ? "أعلى تقييم | TOP POP" : "TOP POP"}</span>`
+          : "";
+
+        const popLine = lang === "ar"
+          ? `في تقييم <b>${esc(r.grade)}</b>: <b>${st.inSameGrade}</b> حبة | بتقييم أعلى: <b>${st.gradedHigher}</b> حبة`
+          : `In Grade <b>${esc(r.grade)}</b>: <b>${st.inSameGrade}</b> | Graded Higher: <b>${st.gradedHigher}</b>`;
+
+        const card = document.createElement("div");
+        card.className = "rounded-2xl border border-goldBright/50 bg-ivoryBg/60 hover:bg-white p-4 shadow-sm hover:shadow-md transition flex flex-col justify-between gap-3";
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-3">
+            <div class="space-y-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="font-mono font-extrabold text-xs px-2.5 py-0.5 rounded-lg bg-emeraldDeep text-goldBright">${esc(r.certNum)}</span>
+                ${topBadge}
+              </div>
+              <h3 class="font-extrabold text-emeraldDeep text-base pt-1">${esc(cName)}</h3>
+              <div class="font-bold text-slate-800 text-sm">${esc(dName)}</div>
+              <div class="text-xs font-mono text-slate-600">${esc(r.year)} ${pickTxt ? `• <span class="font-bold text-emeraldDeep">${esc(pickTxt)}</span>` : ""}</div>
+            </div>
+            <div class="flex flex-col items-center justify-center bg-white border-2 border-emeraldDeep rounded-2xl px-3 py-2 min-w-[68px] shadow-sm">
+              <span class="text-[9px] font-extrabold text-amber-800 uppercase">GRADE</span>
+              <span class="font-serifDisplay font-extrabold text-2xl text-emeraldDeep leading-none">${esc(r.grade)}</span>
+              ${r.designation ? `<span class="mt-1 px-1.5 py-0.2 rounded bg-emeraldDeep text-goldBright text-[10px] font-extrabold">${esc(r.designation)}</span>` : ""}
+            </div>
+          </div>
+          <div class="pt-2.5 border-t border-slate-200/80 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div class="text-slate-700">${popLine}</div>
+            <button onclick="openCertFromRegistry('${r.certNum}')" class="px-3 py-1.5 rounded-xl bg-emeraldDeep hover:bg-emeraldMid text-goldBright font-bold transition">
+              ${lang === "ar" ? "عرض الشهادة 👁️" : "Inspect Cert 👁️"}
+            </button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    };
+
+    window.openCertFromRegistry = function (certNum) {
+      switchPublicTab("verify");
+      verifyCertificate(certNum);
+    };
+
+    // =========================================================================
+    // ADMIN FORM CONTROLS
+    // =========================================================================
+    window.toggleGradeDesignation = function (val) {
+      activeDesignation = activeDesignation === val ? "" : val;
+      updateDesignationUI();
+      refreshLivePreview();
+    };
+
+    function updateDesignationUI() {
+      const bEpq = document.getElementById("toggle-epq-btn");
+      const iEpq = document.getElementById("epq-indicator");
+      const bNet = document.getElementById("toggle-net-btn");
+      const iNet = document.getElementById("net-indicator");
+
+      bEpq.className = "flex-1 py-2.5 px-3 rounded-xl border-2 border-slate-300 bg-white text-slate-700 font-extrabold text-sm transition-all flex items-center justify-center gap-1.5 shadow-sm";
+      iEpq.className = "w-2.5 h-2.5 rounded-full bg-slate-300";
+      bNet.className = "flex-1 py-2.5 px-3 rounded-xl border-2 border-slate-300 bg-white text-slate-700 font-extrabold text-sm transition-all flex items-center justify-center gap-1.5 shadow-sm";
+      iNet.className = "w-2.5 h-2.5 rounded-full bg-slate-300";
+
+      if (activeDesignation === "EPQ") {
+        bEpq.className = "flex-1 py-2.5 px-3 rounded-xl border-2 border-goldBright bg-emeraldDeep text-goldBright font-extrabold text-sm transition-all flex items-center justify-center gap-1.5 shadow-md";
+        iEpq.className = "w-2.5 h-2.5 rounded-full bg-goldBright";
+      } else if (activeDesignation === "NET") {
+        bNet.className = "flex-1 py-2.5 px-3 rounded-xl border-2 border-amber-600 bg-amber-700 text-white font-extrabold text-sm transition-all flex items-center justify-center gap-1.5 shadow-md";
+        iNet.className = "w-2.5 h-2.5 rounded-full bg-amber-200";
+      }
+    }
+
+    window.handleSizePresetChange = function () {
+      const val = document.getElementById("inp-sizePreset").value;
+      const wEl = document.getElementById("inp-widthMm");
+      const hEl = document.getElementById("inp-heightMm");
+      if (val === "standard") { wEl.value = 110; hEl.value = 25; }
+      else if (val === "large") { wEl.value = 140; hEl.value = 30; }
+      else if (val === "compact") { wEl.value = 90; hEl.value = 24; }
+      refreshLivePreview();
+    };
+
+    function collectFormData() {
+      const certNum = (document.getElementById("inp-certNum").value.trim() || "NGA-1005").toUpperCase();
+      return {
+        certNum,
+        holoSerial: document.getElementById("inp-holo").value.trim(),
+        gradedDate: document.getElementById("inp-date").value || todayISO(),
+        countryEn: document.getElementById("inp-countryEn").value.trim() || "SAUDI ARABIA",
+        countryAr: document.getElementById("inp-countryAr").value.trim() || "المملكة العربية السعودية",
+        denomEn: document.getElementById("inp-denomEn").value.trim() || "100 RIYALS",
+        denomAr: document.getElementById("inp-denomAr").value.trim() || "١٠٠ ريال",
+        year: document.getElementById("inp-year").value.trim() || "2026",
+        pick: cleanPickCode(document.getElementById("inp-pick").value),
+        serial: document.getElementById("inp-serial").value.trim() || "A/1 000001",
+        grade: document.getElementById("inp-grade").value.trim() || "66",
+        designation: activeDesignation,
+        widthMm: Number(document.getElementById("inp-widthMm").value) || 110,
+        heightMm: Number(document.getElementById("inp-heightMm").value) || 25,
+        notes: document.getElementById("inp-notes").value.trim(),
+        frontImg: document.getElementById("inp-frontUrl").value.trim() || makeSampleSvg(
+          document.getElementById("inp-countryEn").value.trim() || "NGA CERTIFIED",
+          document.getElementById("inp-serial").value.trim() || "A/1 000001",
+          "#064e3b",
+          "OBVERSE ARCHIVE"
+        ),
+        backImg: document.getElementById("inp-backUrl").value.trim() || makeSampleSvg(
+          document.getElementById("inp-countryEn").value.trim() || "NGA CERTIFIED",
+          document.getElementById("inp-serial").value.trim() || "A/1 000001",
+          "#064e3b",
+          "REVERSE ARCHIVE"
+        )
+      };
+    }
+
+    window.handleScanFile = function (e, side) {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        if (side === "front") document.getElementById("inp-frontUrl").value = ev.target.result;
+        else document.getElementById("inp-backUrl").value = ev.target.result;
+        toast(lang === "ar" ? "تم تحميل الصورة بنجاح" : "Image uploaded");
+      };
+      reader.readAsDataURL(file);
+    };
+
+    window.handleSaveCert = async function (e) {
+      e.preventDefault();
+      const obj = collectFormData();
+      await saveRecordToStore(obj);
+      selectedCertIds.add(obj.certNum);
+      renderAdminTable();
+      toast(lang === "ar" ? `تم حفظ الشهادة ${obj.certNum}` : `Saved ${obj.certNum}`);
+    };
+
+    window.editCertRecord = function (certNum) {
+      const r = records.find(item => item.certNum === certNum);
+      if (!r) return;
+      document.getElementById("inp-certNum").value = r.certNum;
+      document.getElementById("inp-holo").value = r.holoSerial || "";
+      document.getElementById("inp-date").value = r.gradedDate || todayISO();
+      document.getElementById("inp-countryEn").value = r.countryEn || "";
+      document.getElementById("inp-countryAr").value = r.countryAr || "";
+      document.getElementById("inp-denomEn").value = r.denomEn || "";
+      document.getElementById("inp-denomAr").value = r.denomAr || "";
+      document.getElementById("inp-year").value = r.year || "";
+      document.getElementById("inp-pick").value = cleanPickCode(r.pick);
+      document.getElementById("inp-serial").value = r.serial || "";
+      document.getElementById("inp-grade").value = r.grade || "";
+      document.getElementById("inp-widthMm").value = r.widthMm || 110;
+      document.getElementById("inp-heightMm").value = r.heightMm || 25;
+      document.getElementById("inp-frontUrl").value = r.frontImg || "";
+      document.getElementById("inp-backUrl").value = r.backImg || "";
+      document.getElementById("inp-notes").value = r.notes || "";
+      activeDesignation = r.designation || "";
+      updateDesignationUI();
+      refreshLivePreview();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    window.resetCertForm = function () {
+      document.getElementById("admin-cert-form").reset();
+      document.getElementById("inp-certNum").value = `NGA-${1001 + records.length}`;
+      document.getElementById("inp-date").value = todayISO();
+      document.getElementById("inp-widthMm").value = 110;
+      document.getElementById("inp-heightMm").value = 25;
+      activeDesignation = "";
+      updateDesignationUI();
+      refreshLivePreview();
+    };
+
+    window.deleteCertRecord = async function (certNum) {
+      records = records.filter(r => r.certNum !== certNum);
+      selectedCertIds.delete(certNum);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+      if (db && window._fb) {
+        try {
+          await window._fb.deleteDoc(window._fb.doc(db, "nga_certificates", certNum));
+        } catch (e) { console.error(e); }
+      }
+      renderAdminTable();
+      toast(lang === "ar" ? "تم حذف الشهادة" : "Deleted");
+    };
+
+    // =========================================================================
+    // DATE FILTERING & SELECTION IN ADMIN TABLE
+    // =========================================================================
+    function getVisibleAdminRecords() {
+      if (dateFilterMode === "TODAY") {
+        const t = todayISO();
+        return records.filter(r => (r.gradedDate || "") === t);
+      }
+      if (dateFilterMode === "SPECIFIC" && specificFilterDate) {
+        return records.filter(r => (r.gradedDate || "") === specificFilterDate);
+      }
+      return records;
+    }
+
+    window.applyAdminDateFilter = function (mode) {
+      dateFilterMode = mode;
+      if (mode === "TODAY") {
+        const t = todayISO();
+        document.getElementById("filter-date-input").value = t;
+        specificFilterDate = t;
+      } else if (mode === "SPECIFIC") {
+        specificFilterDate = document.getElementById("filter-date-input").value;
+      } else {
+        document.getElementById("filter-date-input").value = "";
+        specificFilterDate = "";
+      }
+
+      const visible = getVisibleAdminRecords();
+      selectedCertIds.clear();
+      visible.forEach(r => selectedCertIds.add(r.certNum));
+      renderAdminTable();
+
+      if (mode !== "ALL") {
+        toast(lang === "ar"
+          ? `تم تحديد ${visible.length} شهادة بتاريخ ${specificFilterDate}`
+          : `Selected ${visible.length} certificate(s) for ${specificFilterDate}`);
+      }
+    };
+
+    window.toggleCertCheckbox = function (certNum) {
+      if (selectedCertIds.has(certNum)) selectedCertIds.delete(certNum);
+      else selectedCertIds.add(certNum);
+      document.getElementById("selected-count-pill").textContent = selectedCertIds.size;
+    };
+
+    window.toggleSelectAllFiltered = function () {
+      const visible = getVisibleAdminRecords();
+      const allOn = visible.length > 0 && visible.every(r => selectedCertIds.has(r.certNum));
+      if (allOn) visible.forEach(r => selectedCertIds.delete(r.certNum));
+      else visible.forEach(r => selectedCertIds.add(r.certNum));
+      renderAdminTable();
+    };
+
+    function renderAdminTable() {
+      const tbody = document.getElementById("admin-certs-tbody");
+      if (!tbody) return;
+      tbody.innerHTML = "";
+      document.getElementById("selected-count-pill").textContent = selectedCertIds.size;
+
+      const list = getVisibleAdminRecords();
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500 font-bold">${lang === "ar" ? "لا توجد شهادات في هذا التاريخ" : "No certificates for this date"}</td></tr>`;
+        return;
+      }
+
+      list.forEach(r => {
+        const isChecked = selectedCertIds.has(r.certNum) ? "checked" : "";
+        const pickTxt = formatPickFull(r.pick);
+        const tag = r.designation === "EPQ"
+          ? `<span class="ms-1 px-1.5 py-0.5 rounded bg-emeraldDeep text-goldBright text-[10px] font-extrabold">EPQ</span>`
+          : (r.designation === "NET" ? `<span class="ms-1 px-1.5 py-0.5 rounded bg-amber-700 text-white text-[10px] font-extrabold">NET</span>` : "");
+
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-goldPale/40 transition";
+        tr.innerHTML = `
+          <td class="p-3 text-center">
+            <input type="checkbox" ${isChecked} onchange="toggleCertCheckbox('${r.certNum}')" class="w-4 h-4 accent-emeraldDeep rounded cursor-pointer" />
+          </td>
+          <td class="p-3 font-mono font-bold text-emeraldDeep">${esc(r.certNum)}</td>
+          <td class="p-3">
+            <div class="font-bold text-slate-800">${esc(r.countryEn)} — ${esc(r.denomEn)}</div>
+            <div class="text-xs text-slate-500 font-mono">${esc(r.year)} ${pickTxt ? '| ' + esc(pickTxt) : ''} | S/N: ${esc(r.serial)}</div>
+          </td>
+          <td class="p-3 text-center">
+            <span class="font-serifDisplay font-extrabold text-base text-emeraldDeep">${esc(r.grade)}</span>
+            ${tag}
+          </td>
+          <td class="p-3 text-center font-mono text-xs text-slate-700 font-bold">${esc(r.gradedDate || "—")}</td>
+          <td class="p-3 text-center font-mono text-xs text-amber-800 font-bold">${esc(r.holoSerial || "—")}</td>
+          <td class="p-3 text-center">
+            <div class="inline-flex items-center gap-1.5">
+              <button onclick="openCertFromRegistry('${r.certNum}')" class="px-2.5 py-1 rounded-lg bg-emeraldDeep/10 hover:bg-emeraldDeep hover:text-white text-emeraldDeep text-xs font-bold transition">👁️</button>
+              <button onclick="editCertRecord('${r.certNum}')" class="px-2.5 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900 text-xs font-bold transition">✏️</button>
+              <button onclick="deleteCertRecord('${r.certNum}')" class="px-2.5 py-1 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 text-xs font-bold transition">🗑️</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // =========================================================================
+    // PHYSICAL LABEL HTML BUILDER (FRONT & BACK WITH 20x10mm HOLOGRAM + QR)
+    // =========================================================================
+    function renderFrontLabelHTML(cert) {
+      const w = Number(cert.widthMm) || 110;
+      const h = Number(cert.heightMm) || 25;
+      const isLarge = w >= 130 || h >= 28;
+      const pickFull = formatPickFull(cert.pick);
+
+      let desigHTML = "";
+      if (cert.designation === "EPQ") {
+        desigHTML = `<div style="background:#064e3b; color:#d4af37; border:0.3mm solid #d4af37; font-size:${isLarge ? '7.5pt' : '6.5pt'}; font-weight:800; letter-spacing:0.6px; padding:0.2mm 1.8mm; border-radius:0.8mm; line-height:1.1; margin-top:0.5mm;">EPQ</div>`;
+      } else if (cert.designation === "NET") {
+        desigHTML = `<div style="background:#9a3412; color:#ffffff; border:0.3mm solid #f59e0b; font-size:${isLarge ? '7.5pt' : '6.5pt'}; font-weight:800; letter-spacing:0.6px; padding:0.2mm 1.8mm; border-radius:0.8mm; line-height:1.1; margin-top:0.5mm;">NET</div>`;
+      }
+
+      return `
+        <div class="guilloche-card relative overflow-hidden flex items-stretch justify-between select-none"
+             style="width:${w}mm; height:${h}mm; padding:1.4mm 2mm; direction:ltr; font-family:'Inter', sans-serif;">
+          
+          <!-- Left NGA Emblem -->
+          <div style="width:${isLarge ? '22mm' : '18mm'}; border-right:0.35mm solid rgba(212,175,55,0.7); padding-right:1.5mm; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+            <div style="background:#064e3b; color:#d4af37; border:0.35mm solid #d4af37; border-radius:1.2mm; padding:0.6mm 1.6mm; font-family:'Cinzel', serif; font-weight:900; font-size:${isLarge ? '10.5pt' : '9pt'}; letter-spacing:0.8px; line-height:1;">
+              NGA
+            </div>
+            <div style="font-size:${isLarge ? '4.8pt' : '4.2pt'}; font-weight:700; color:#064e3b; text-transform:uppercase; line-height:1.15; margin-top:0.8mm;">
+              Numismatic<br/>Grading Agency
+            </div>
+            <div style="font-size:${isLarge ? '4.6pt' : '4pt'}; font-family:'JetBrains Mono', monospace; font-weight:700; color:#8a6812; margin-top:0.5mm;">
+              nganotes.com
+            </div>
+          </div>
+
+          <!-- Center Banknote Info -->
+          <div style="flex:1; padding:0 2mm; display:flex; flex-direction:column; justify-content:space-between; min-width:0;">
+            <div>
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:1mm;">
+                <span style="font-size:${isLarge ? '6.2pt' : '5.2pt'}; font-weight:700; color:#0f5132; font-family:'JetBrains Mono', monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                  ${esc(cert.year || '')}${pickFull ? ' • ' + esc(pickFull) : ''}
+                </span>
+                <span style="font-size:${isLarge ? '6pt' : '5.2pt'}; font-weight:700; color:#8a6812; font-family:'JetBrains Mono', monospace; flex-shrink:0;">
+                  ${esc(cert.certNum)}
+                </span>
+              </div>
+              <div style="font-size:${isLarge ? '8.5pt' : '7.2pt'}; font-weight:800; color:#064e3b; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.15; margin-top:0.3mm;">
+                ${esc(cert.countryEn)}
+              </div>
+              <div style="font-size:${isLarge ? '8pt' : '6.8pt'}; font-weight:700; color:#1e293b; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.15;">
+                ${esc(cert.denomEn)}
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; border-top:0.25mm solid rgba(6,78,59,0.2); padding-top:0.5mm;">
+              <span style="font-size:${isLarge ? '6pt' : '5pt'}; font-family:'JetBrains Mono', monospace; font-weight:700; color:#334155;">
+                S/N: ${esc(cert.serial)}
+              </span>
+              ${cert.holoSerial ? `<span style="font-size:${isLarge ? '5.2pt' : '4.5pt'}; font-family:'JetBrains Mono', monospace; color:#8a6812;">HOLO:${esc(cert.holoSerial)}</span>` : ''}
+            </div>
+          </div>
+
+          <!-- Right Grade Box + Optional EPQ/NET -->
+          <div style="width:${isLarge ? '21mm' : '17.5mm'}; border-left:0.35mm solid rgba(212,175,55,0.7); padding-left:1.5mm; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+            <span style="font-size:${isLarge ? '5pt' : '4.4pt'}; font-weight:800; color:#8a6812; letter-spacing:0.6px;">GRADE</span>
+            <div style="font-family:'Cinzel', serif; font-weight:900; font-size:${isLarge ? '16pt' : '13.5pt'}; color:#064e3b; line-height:1;">
+              ${esc(cert.grade)}
+            </div>
+            ${desigHTML}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderBackLabelHTML(cert, uid) {
+      const w = Number(cert.widthMm) || 110;
+      const h = Number(cert.heightMm) || 25;
+      const isLarge = w >= 130 || h >= 28;
+
+      return `
+        <div class="guilloche-card relative overflow-hidden flex items-center justify-between select-none"
+             style="width:${w}mm; height:${h}mm; padding:1.4mm 2.2mm; direction:ltr; font-family:'Inter', sans-serif;">
+          
+          <!-- Left Verification Info & Cert Number -->
+          <div style="flex:1; padding-right:2mm; display:flex; flex-direction:column; justify-content:space-between; height:100%;">
+            <div>
+              <div style="font-family:'Cinzel', serif; font-weight:800; font-size:${isLarge ? '7.5pt' : '6.5pt'}; color:#064e3b; letter-spacing:0.4px;">
+                NGA • VERIFIED AUTHENTICITY
+              </div>
+              <div style="font-size:${isLarge ? '5pt' : '4.3pt'}; color:#334155; line-height:1.2; margin-top:0.3mm;">
+                Scan QR code or visit <b>nganotes.com</b> to verify archival scans &amp; population registry.
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; border-top:0.25mm solid rgba(6,78,59,0.2); padding-top:0.4mm;">
+              <span style="font-family:'JetBrains Mono', monospace; font-size:${isLarge ? '6.2pt' : '5.4pt'}; font-weight:800; color:#064e3b;">
+                CERT: ${esc(cert.certNum)}
+              </span>
+              <span style="font-family:'JetBrains Mono', monospace; font-size:${isLarge ? '5.2pt' : '4.5pt'}; font-weight:700; color:#8a6812;">
+                nganotes.com
+              </span>
+            </div>
+          </div>
+
+          <!-- Exact 20mm x 10mm Gold Serialized Hologram Target Zone -->
+          <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; margin:0 1.8mm;">
+            <div style="width:20mm; height:10mm; border:0.35mm dashed #b48a28; background:rgba(212,175,55,0.1); border-radius:0.8mm; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; box-sizing:border-box;">
+              <span style="font-size:4.2pt; font-weight:800; color:#8a6812; letter-spacing:0.4px;">SECURITY SEAL</span>
+              <span style="font-size:4pt; font-family:'JetBrains Mono', monospace; color:#92400e;">20×10mm HOLO</span>
+            </div>
+            ${cert.holoSerial ? `<span style="font-size:4.3pt; font-family:'JetBrains Mono', monospace; font-weight:700; color:#064e3b; margin-top:0.3mm;">#${esc(cert.holoSerial)}</span>` : ''}
+          </div>
+
+          <!-- Right QR Code -->
+          <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; border-left:0.35mm solid rgba(212,175,55,0.7); padding-left:1.8mm;">
+            <div id="qr-slot-${uid}" style="width:${isLarge ? '17mm' : '14mm'}; height:${isLarge ? '17mm' : '14mm'}; display:flex; align-items:center; justify-content:center; background:#fff; padding:0.4mm; border:0.25mm solid #064e3b;"></div>
+            <span style="font-size:4pt; font-weight:800; color:#064e3b; margin-top:0.3mm;">SCAN VERIFY</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function mountQrIntoDom(cert, uid) {
+      const isLarge = Number(cert.widthMm) >= 130 || Number(cert.heightMm) >= 28;
+      const el = document.getElementById(`qr-slot-${uid}`);
+      if (!el || !window.QRCode) return;
+      el.innerHTML = "";
+      new QRCode(el, {
+        text: `https://nganotes.com/?cert=${encodeURIComponent(cert.certNum)}`,
+        width: isLarge ? 64 : 52,
+        height: isLarge ? 64 : 52,
+        colorDark: "#064e3b",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    }
+
+    window.refreshLivePreview = function () {
+      const obj = collectFormData();
+      document.getElementById("live-dim-pill").textContent = `${obj.widthMm} × ${obj.heightMm} mm`;
+      document.getElementById("preview-front-container").innerHTML = renderFrontLabelHTML(obj);
+      document.getElementById("preview-back-container").innerHTML = renderBackLabelHTML(obj, "live");
+      mountQrIntoDom(obj, "live");
+    };
+
+    // =========================================================================
+    // FULL-SHEET A4 GRID DISTRIBUTION ENGINE (Fills Entire 210x297mm Sheet!)
+    // =========================================================================
+    function computeA4SheetLayout(selectedList) {
+      // Printable inner area inside 210mm x 297mm with 10mm left/right & 8mm top/bottom padding = 190mm x 281mm
+      const maxSheetW = 190;
+      const maxSheetH = 272;
+      const colGap = 4; // mm
+      const rowGap = 3; // mm
+
+      // Group items into horizontal rows that fit across 190mm width (e.g. 1 col for 110mm/140mm, 2 cols for <=92mm)
+      const rows = [];
+      let curRow = [];
+      let curW = 0;
+
+      selectedList.forEach(item => {
+        const w = Number(item.widthMm) || 110;
+        const needed = curRow.length === 0 ? w : w + colGap;
+        if (curRow.length > 0 && curW + needed > maxSheetW) {
+          rows.push(curRow);
+          curRow = [item];
+          curW = w;
+        } else {
+          curRow.push(item);
+          curW += needed;
+        }
+      });
+      if (curRow.length > 0) rows.push(curRow);
+
+      // Group rows into full A4 pages (e.g., 10 rows of 25mm = 277mm -> fills entire A4 page!)
+      const pages = [];
+      let curPage = [];
+      let curH = 0;
+
+      rows.forEach(r => {
+        const rowH = Math.max(...r.map(x => Number(x.heightMm) || 25));
+        const neededH = curPage.length === 0 ? rowH : rowH + rowGap;
+        if (curPage.length > 0 && curH + neededH > maxSheetH) {
+          pages.push(curPage);
+          curPage = [r];
+          curH = rowH;
+        } else {
+          curPage.push(r);
+          curH += neededH;
+        }
+      });
+      if (curPage.length > 0) pages.push(curPage);
+
+      return { pages, colGap, rowGap };
+    }
+
+    // =========================================================================
+    // FULL A4 SHEET MODAL PREVIEW & NATIVE PRINT
+    // =========================================================================
+    window.openFullA4PreviewModal = function () {
+      const selected = records.filter(r => selectedCertIds.has(r.certNum));
+      if (selected.length === 0) {
+        toast(lang === "ar" ? "يرجى تحديد شهادة واحدة على الأقل" : "Select at least one certificate");
+        return;
+      }
+
+      const wrapper = document.getElementById("print-pages-wrapper");
+      wrapper.innerHTML = "";
+      const { pages, colGap, rowGap } = computeA4SheetLayout(selected);
+
+      pages.forEach((pageRows, pIdx) => {
+        // PAGE 1: FRONT LABELS DISTRIBUTED ACROSS FULL A4 SHEET
+        const frontPage = document.createElement("div");
+        frontPage.className = "a4-page-sheet";
+        frontPage.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:7pt; color:#064e3b; font-weight:700; border-bottom:0.3mm solid #d4af37; padding-bottom:1.5mm; margin-bottom:2mm;">
+            <span>NGA — NUMISMATIC GRADING AGENCY (NGANOTES.COM)</span>
+            <span>SHEET ${pIdx * 2 + 1} OF ${pages.length * 2} — FRONT (الوجه الأمامي)</span>
+          </div>
+          <div style="flex:1; display:flex; flex-direction:column; justify-content:space-evenly; align-items:center; gap:${rowGap}mm;">
+            ${pageRows.map(row => `
+              <div style="display:flex; flex-direction:row; justify-content:center; align-items:center; gap:${colGap}mm; width:100%;">
+                ${row.map(cert => `
+                  <div class="label-cut-slot">
+                    ${renderFrontLabelHTML(cert)}
+                  </div>
+                `).join("")}
+              </div>
+            `).join("")}
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:6pt; color:#64748b; border-top:0.25mm solid #cbd5e1; padding-top:1mm; margin-top:2mm;">
+            <span>PAPER: A4 MATTE 180GSM • SCALE: 100% ACTUAL SIZE</span>
+            <span>FRONT SIDE — FEED REAR TRAY</span>
+          </div>
+        `;
+        wrapper.appendChild(frontPage);
+
+        // PAGE 2: MIRRORED BACK LABELS FOR EXACT 1:1 DUPLEX ALIGNMENT
+        const backPage = document.createElement("div");
+        backPage.className = "a4-page-sheet";
+        backPage.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:7pt; color:#92400e; font-weight:700; border-bottom:0.3mm solid #d4af37; padding-bottom:1.5mm; margin-bottom:2mm;">
+            <span>NGA — DUPLEX REVERSE SHEET (20×10MM GOLD HOLOGRAM + QR)</span>
+            <span>SHEET ${pIdx * 2 + 2} OF ${pages.length * 2} — BACK (الظهر المعكوس)</span>
+          </div>
+          <div style="flex:1; display:flex; flex-direction:column; justify-content:space-evenly; align-items:center; gap:${rowGap}mm;">
+            ${pageRows.map(row => {
+              const mirrored = [...row].reverse();
+              return `
+                <div style="display:flex; flex-direction:row; justify-content:center; align-items:center; gap:${colGap}mm; width:100%;">
+                  ${mirrored.map(cert => `
+                    <div class="label-cut-slot">
+                      ${renderBackLabelHTML(cert, `p-${pIdx}-${cert.certNum}`)}
+                    </div>
+                  `).join("")}
+                </div>
+              `;
+            }).join("")}
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:6pt; color:#64748b; border-top:0.25mm solid #cbd5e1; padding-top:1mm; margin-top:2mm;">
+            <span>FLIP PAPER HORIZONTALLY ON LONG EDGE FOR 1:1 ALIGNMENT</span>
+            <span>REVERSE SIDE — NGANOTES.COM</span>
+          </div>
+        `;
+        wrapper.appendChild(backPage);
+
+        pageRows.forEach(row => {
+          row.forEach(cert => mountQrIntoDom(cert, `p-${pIdx}-${cert.certNum}`));
+        });
+      });
+
+      document.getElementById("print-sheet-root").classList.remove("hidden");
+    };
+
+    window.closeFullA4PreviewModal = function () {
+      document.getElementById("print-sheet-root").classList.add("hidden");
+    };
+
+    // =========================================================================
+    // DIRECT VECTOR PDF GENERATOR (jsPDF — 100% Immune to Blank Pages on iOS!)
+    // =========================================================================
+    function generateQrDataUrl(text) {
+      return new Promise(resolve => {
+        const tempDiv = document.createElement("div");
+        tempDiv.style.position = "fixed";
+        tempDiv.style.left = "-9999px";
+        document.body.appendChild(tempDiv);
+
+        new QRCode(tempDiv, {
+          text,
+          width: 240,
+          height: 240,
+          colorDark: "#064e3b",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.M
+        });
+
+        setTimeout(() => {
+          const canvas = tempDiv.querySelector("canvas");
+          const img = tempDiv.querySelector("img");
+          let dataUrl = "";
+          if (canvas) {
+            dataUrl = canvas.toDataURL("image/png");
+          } else if (img && img.src) {
+            dataUrl = img.src;
+          }
+          document.body.removeChild(tempDiv);
+          resolve(dataUrl);
+        }, 60);
+      });
+    }
+
+    function drawVectorFrontLabel(doc, cert, x, y, w, h) {
+      const isLarge = w >= 130 || h >= 28;
+
+      // Subtle cut tick marks outside label
+      doc.setDrawColor(148, 163, 184);
+      doc.setLineWidth(0.15);
+      const t = 1.5;
+      doc.line(x - t, y, x - 0.3, y);
+      doc.line(x, y - t, x, y - 0.3);
+      doc.line(x + w + 0.3, y, x + w + t, y);
+      doc.line(x + w, y - t, x + w, y - 0.3);
+      doc.line(x - t, y + h, x - 0.3, y + h);
+      doc.line(x, y + h + 0.3, x, y + h + t);
+      doc.line(x + w + 0.3, y + h, x + w + t, y + h);
+      doc.line(x + w, y + h + 0.3, x + w, y + h + t);
+
+      // Ivory Guilloche Card Background
+      doc.setFillColor(253, 251, 243);
+      doc.rect(x, y, w, h, "F");
+
+      // Subtle diagonal heritage micro-lines
+      doc.setDrawColor(235, 226, 198);
+      doc.setLineWidth(0.08);
+      for (let gx = x + 3; gx < x + w - 2; gx += 4) {
+        doc.line(gx, y + 1, gx - 2, y + h - 1);
+      }
+
+      // Outer Emerald Border + Inner Gold Border
+      doc.setDrawColor(6, 78, 59);
+      doc.setLineWidth(0.45);
+      doc.rect(x, y, w, h);
+
+      doc.setDrawColor(212, 175, 55);
+      doc.setLineWidth(0.28);
+      doc.rect(x + 0.7, y + 0.7, w - 1.4, h - 1.4);
+
+      // Left Emblem Column
+      const leftColW = isLarge ? 23 : 19;
+      doc.setDrawColor(212, 175, 55);
+      doc.setLineWidth(0.25);
+      doc.line(x + leftColW, y + 1.5, x + leftColW, y + h - 1.5);
+
+      // Dark Emerald NGA Crest Box
+      const crestW = leftColW - 4;
+      const crestH = isLarge ? 7 : 6;
+      const crestX = x + 2;
+      const crestY = y + (h / 2) - crestH - 1.2;
+      doc.setFillColor(6, 78, 59);
+      doc.roundedRect(crestX, crestY, crestW, crestH, 1, 1, "F");
+      doc.setTextColor(212, 175, 55);
+      doc.setFont("times", "bold");
+      doc.setFontSize(isLarge ? 11 : 9.5);
+      doc.text("NGA", x + leftColW / 2, crestY + crestH - 1.6, { align: "center" });
+
+      doc.setTextColor(6, 78, 59);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(isLarge ? 4.8 : 4.2);
+      doc.text("NUMISMATIC", x + leftColW / 2, y + h / 2 + 1.6, { align: "center" });
+      doc.text("GRADING AGENCY", x + leftColW / 2, y + h / 2 + 3.6, { align: "center" });
+
+      doc.setTextColor(138, 104, 18);
+      doc.setFont("courier", "bold");
+      doc.setFontSize(isLarge ? 4.8 : 4.2);
+      doc.text("nganotes.com", x + leftColW / 2, y + h - 2.2, { align: "center" });
+
+      // Right Grade Box Column
+      const rightColW = isLarge ? 22 : 18.5;
+      const rightX = x + w - rightColW;
+      doc.setDrawColor(212, 175, 55);
+      doc.line(rightX, y + 1.5, rightX, y + h - 1.5);
+
+      doc.setTextColor(138, 104, 18);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(isLarge ? 5.2 : 4.6);
+      doc.text("GRADE", rightX + rightColW / 2, y + 4.2, { align: "center" });
+
+      doc.setTextColor(6, 78, 59);
+      doc.setFont("times", "bold");
+      doc.setFontSize(isLarge ? 17 : 14.5);
+      const gradeY = cert.designation ? (y + h / 2 + 2.5) : (y + h / 2 + 4.2);
+      doc.text(String(cert.grade || ""), rightX + rightColW / 2, gradeY, { align: "center" });
+
+      // Conditional EPQ or NET Badge Directly Beneath Grade
+      if (cert.designation === "EPQ" || cert.designation === "NET") {
+        const badgeW = rightColW - 4.5;
+        const badgeH = isLarge ? 4.2 : 3.6;
+        const badgeX = rightX + 2.25;
+        const badgeY = y + h - badgeH - 2.2;
+        if (cert.designation === "EPQ") {
+          doc.setFillColor(6, 78, 59);
+          doc.setTextColor(212, 175, 55);
+        } else {
+          doc.setFillColor(154, 52, 18);
+          doc.setTextColor(255, 255, 255);
+        }
+        doc.roundedRect(badgeX, badgeY, badgeW, badgeH, 0.7, 0.7, "F");
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(isLarge ? 7 : 6);
+        doc.text(cert.designation, rightX + rightColW / 2, badgeY + badgeH - 1, { align: "center" });
+      }
+
+      // Center Attribution Content
+      const cX = x + leftColW + 2.2;
+      const cRight = rightX - 2.2;
+
+      // Top line: Year + Fixed "Pick Number: XX" & Cert #
+      const pickFull = formatPickFull(cert.pick);
+      const topLeftStr = `${cert.year || ""}${pickFull ? "  |  " + pickFull : ""}`;
+      doc.setTextColor(15, 81, 50);
+      doc.setFont("courier", "bold");
+      doc.setFontSize(isLarge ? 6.4 : 5.5);
+      doc.text(topLeftStr, cX, y + 4.5);
+
+      doc.setTextColor(138, 104, 18);
+      doc.text(String(cert.certNum || ""), cRight, y + 4.5, { align: "right" });
+
+      // Country & Denomination
+      doc.setTextColor(6, 78, 59);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(isLarge ? 9.5 : 8);
+      doc.text(String(cert.countryEn || "").toUpperCase(), cX, y + (isLarge ? 11.5 : 9.8));
+
+      doc.setTextColor(30, 41, 59);
+      doc.setFontSize(isLarge ? 8.8 : 7.4);
+      doc.text(String(cert.denomEn || "").toUpperCase(), cX, y + (isLarge ? 17.5 : 14.8));
+
+      // Bottom Serial Line
+      doc.setDrawColor(6, 78, 59);
+      doc.setLineWidth(0.15);
+      doc.line(cX, y + h - 5.5, cRight, y + h - 5.5);
+
+      doc.setTextColor(51, 65, 85);
+      doc.setFont("courier", "bold");
+      doc.setFontSize(isLarge ? 6.4 : 5.4);
+      doc.text(`S/N: ${cert.serial || ""}`, cX, y + h - 2.3);
+
+      if (cert.holoSerial) {
+        doc.setTextColor(138, 104, 18);
+        doc.text(`HOLO: #${cert.holoSerial}`, cRight, y + h - 2.3, { align: "right" });
+      }
+    }
+
+    function drawVectorBackLabel(doc, cert, qrDataUrl, x, y, w, h) {
+      const isLarge = w >= 130 || h >= 28;
+
+      // Cut tick marks
+      doc.setDrawColor(148, 163, 184);
+      doc.setLineWidth(0.15);
+      const t = 1.5;
+      doc.line(x - t, y, x - 0.3, y);
+      doc.line(x, y - t, x, y - 0.3);
+      doc.line(x + w + 0.3, y, x + w + t, y);
+      doc.line(x + w, y - t, x + w, y - 0.3);
+      doc.line(x - t, y + h, x - 0.3, y + h);
+      doc.line(x, y + h + 0.3, x, y + h + t);
+      doc.line(x + w + 0.3, y + h, x + w + t, y + h);
+      doc.line(x + w, y + h + 0.3, x + w, y + h + t);
+
+      // Card Fill & Double Border
+      doc.setFillColor(253, 251, 243);
+      doc.rect(x, y, w, h, "F");
+
+      doc.setDrawColor(6, 78, 59);
+      doc.setLineWidth(0.45);
+      doc.rect(x, y, w, h);
+
+      doc.setDrawColor(212, 175, 55);
+      doc.setLineWidth(0.28);
+      doc.rect(x + 0.7, y + 0.7, w - 1.4, h - 1.4);
+
+      // Right QR Code Box
+      const qrBoxW = isLarge ? 21 : 18;
+      const qrSize = isLarge ? 16 : 13.5;
+      const qrAreaX = x + w - qrBoxW;
+      doc.setDrawColor(212, 175, 55);
+      doc.line(qrAreaX, y + 1.5, qrAreaX, y + h - 1.5);
+
+      if (qrDataUrl) {
+        const imgX = qrAreaX + (qrBoxW - qrSize) / 2;
+        const imgY = y + 2.2;
+        doc.addImage(qrDataUrl, "PNG", imgX, imgY, qrSize, qrSize);
+      }
+
+      doc.setTextColor(6, 78, 59);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(4.2);
+      doc.text("SCAN VERIFY", qrAreaX + qrBoxW / 2, y + h - 1.8, { align: "center" });
+
+      // Exact 20mm x 10mm Gold Hologram Sticker Target Zone
+      const holoW = 20;
+      const holoH = 10;
+      const holoX = qrAreaX - holoW - 2.5;
+      const holoY = y + (h - holoH) / 2 - 0.8;
+
+      doc.setFillColor(251, 246, 228);
+      doc.setDrawColor(180, 138, 40);
+      doc.setLineWidth(0.3);
+      doc.rect(holoX, holoY, holoW, holoH, "FD");
+
+      doc.setTextColor(138, 104, 18);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(4.4);
+      doc.text("SECURITY SEAL", holoX + holoW / 2, holoY + 4.2, { align: "center" });
+      doc.setFont("courier", "bold");
+      doc.setFontSize(4.2);
+      doc.text("20x10mm HOLO", holoX + holoW / 2, holoY + 7.5, { align: "center" });
+
+      if (cert.holoSerial) {
+        doc.setTextColor(6, 78, 59);
+        doc.setFontSize(4.5);
+        doc.text(`#${cert.holoSerial}`, holoX + holoW / 2, holoY + holoH + 3.2, { align: "center" });
+      }
+
+      // Left Verification Text & Cert Number
+      const textX = x + 2.5;
+      doc.setTextColor(6, 78, 59);
+      doc.setFont("times", "bold");
+      doc.setFontSize(isLarge ? 7.8 : 6.8);
+      doc.text("NGA • VERIFIED AUTHENTICITY", textX, y + 5.2);
+
+      doc.setTextColor(51, 65, 85);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(isLarge ? 5.2 : 4.5);
+      doc.text("Scan QR code or visit nganotes.com", textX, y + 9.2);
+      doc.text("to verify archival scans & population.", textX, y + 12.2);
+
+      doc.setDrawColor(6, 78, 59);
+      doc.setLineWidth(0.15);
+      doc.line(textX, y + h - 5.5, holoX - 2, y + h - 5.5);
+
+      doc.setTextColor(6, 78, 59);
+      doc.setFont("courier", "bold");
+      doc.setFontSize(isLarge ? 6.5 : 5.6);
+      doc.text(`CERT: ${cert.certNum}`, textX, y + h - 2.2);
+    }
+
+    window.exportLabelsToPDF = async function () {
+      const selected = records.filter(r => selectedCertIds.has(r.certNum));
+      if (selected.length === 0) {
+        toast(lang === "ar" ? "يرجى تحديد شهادة واحدة على الأقل" : "Select at least one certificate");
+        return;
+      }
+
+      if (!window.jspdf || !window.jspdf.jsPDF) {
+        toast(lang === "ar" ? "جاري فتح معاينة الطباعة..." : "Opening print preview...");
+        openFullA4PreviewModal();
+        return;
+      }
+
+      toast(lang === "ar" ? "جاري إنشاء ملف PDF كامل بمقاس A4 (الوجه والظهر)..." : "Building full A4 Duplex PDF...");
+
+      // Pre-generate high-res QR codes for all selected certificates
+      const qrMap = {};
+      for (const cert of selected) {
+        qrMap[cert.certNum] = await generateQrDataUrl(`https://nganotes.com/?cert=${encodeURIComponent(cert.certNum)}`);
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+        compress: true
+      });
+
+      const { pages, colGap, rowGap } = computeA4SheetLayout(selected);
+      const sheetW = 210;
+      const sheetH = 297;
+      const topHeaderY = 8;
+      const usableTop = 13;
+      const usableBottom = sheetH - 10;
+
+      pages.forEach((pageRows, pIdx) => {
+        // 1. FRONT PAGE (ODD PAGE)
+        if (pIdx > 0) doc.addPage("a4", "portrait");
+
+        doc.setTextColor(6, 78, 59);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(7.5);
+        doc.text("NGA — NUMISMATIC GRADING AGENCY (NGANOTES.COM)", 10, topHeaderY);
+        doc.text(`SHEET ${pIdx * 2 + 1} OF ${pages.length * 2} — FRONT (OBVERSE)`, 200, topHeaderY, { align: "right" });
+        doc.setDrawColor(212, 175, 55);
+        doc.setLineWidth(0.35);
+        doc.line(10, topHeaderY + 2, 200, topHeaderY + 2);
+
+        // Calculate vertical distribution across the full A4 page height
+        const totalRowsH = pageRows.reduce((acc, r) => acc + Math.max(...r.map(x => Number(x.heightMm) || 25)), 0);
+        const dynamicRowGap = pageRows.length > 1
+          ? Math.min(12, Math.max(rowGap, (usableBottom - usableTop - totalRowsH) / (pageRows.length - 1)))
+          : 0;
+        const blockH = totalRowsH + dynamicRowGap * Math.max(0, pageRows.length - 1);
+        let curY = pageRows.length > 1
+          ? usableTop + ((usableBottom - usableTop - blockH) / 2)
+          : usableTop + 4;
+
+        const rowYPositions = [];
+
+        pageRows.forEach(row => {
+          const rowH = Math.max(...row.map(x => Number(x.heightMm) || 25));
+          const totalRowW = row.reduce((acc, x) => acc + (Number(x.widthMm) || 110), 0) + colGap * (row.length - 1);
+          let curX = (sheetW - totalRowW) / 2;
+
+          row.forEach(cert => {
+            const w = Number(cert.widthMm) || 110;
+            const h = Number(cert.heightMm) || 25;
+            drawVectorFrontLabel(doc, cert, curX, curY, w, h);
+            curX += w + colGap;
+          });
+
+          rowYPositions.push(curY);
+          curY += rowH + dynamicRowGap;
+        });
+
+        doc.setTextColor(100, 116, 139);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(6.5);
+        doc.text("PAPER: A4 MATTE 180GSM • PRINT SCALE: 100% ACTUAL SIZE", 10, sheetH - 5);
+        doc.text("PAGE 1: PRINT FRONTS FIRST", 200, sheetH - 5, { align: "right" });
+
+        // 2. MIRRORED BACK PAGE (EVEN PAGE — EXACT 1:1 HORIZONTAL MIRROR)
+        doc.addPage("a4", "portrait");
+
+        doc.setTextColor(146, 64, 14);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(7.5);
+        doc.text("NGA — DUPLEX REVERSE SHEET (20x10MM GOLD HOLOGRAM + QR)", 10, topHeaderY);
+        doc.text(`SHEET ${pIdx * 2 + 2} OF ${pages.length * 2} — BACK (MIRRORED)`, 200, topHeaderY, { align: "right" });
+        doc.setDrawColor(212, 175, 55);
+        doc.setLineWidth(0.35);
+        doc.line(10, topHeaderY + 2, 200, topHeaderY + 2);
+
+        pageRows.forEach((row, rIdx) => {
+          const mirroredRow = [...row].reverse();
+          const totalRowW = mirroredRow.reduce((acc, x) => acc + (Number(x.widthMm) || 110), 0) + colGap * (mirroredRow.length - 1);
+          let curX = (sheetW - totalRowW) / 2;
+          const yPos = rowYPositions[rIdx];
+
+          mirroredRow.forEach(cert => {
+            const w = Number(cert.widthMm) || 110;
+            const h = Number(cert.heightMm) || 25;
+            drawVectorBackLabel(doc, cert, qrMap[cert.certNum], curX, yPos, w, h);
+            curX += w + colGap;
+          });
+        });
+
+        doc.setTextColor(100, 116, 139);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(6.5);
+        doc.text("FLIP SHEET HORIZONTALLY ON LONG EDGE FOR 1:1 DUPLEX REGISTRATION", 10, sheetH - 5);
+        doc.text("NGANOTES.COM", 200, sheetH - 5, { align: "right" });
+      });
+
+      const dateTag = specificFilterDate || todayISO();
+      const fileName = `NGA-Labels-A4-Duplex-${dateTag}.pdf`;
+      doc.save(fileName);
+      toast(lang === "ar" ? `تم تنزيل ملف ${fileName} بنجاح!` : `Downloaded ${fileName}!`);
+    };
+
+    window.emailSelectedBatch = function () {
+      const selected = records.filter(r => selectedCertIds.has(r.certNum));
+      if (selected.length === 0) {
+        toast(lang === "ar" ? "يرجى تحديد شهادة واحدة على الأقل" : "Select at least one certificate");
+        return;
+      }
+
+      const dateTag = specificFilterDate || todayISO();
+      const subject = `NGA A4 Label Print Batch (${dateTag}) — ${selected.length} Labels`;
+      const lines = selected.map((r, i) => {
+        const p = formatPickFull(r.pick);
+        return `${i + 1}. ${r.certNum} | ${r.countryEn} ${r.denomEn} (${r.year}) | ${p} | Grade: ${r.grade}${r.designation ? " " + r.designation : ""} | Holo: #${r.holoSerial || "N/A"} | Size: ${r.widthMm}x${r.heightMm}mm`;
+      });
+
+      const body = [
+        `NGA — Numismatic Grading Agency (nganotes.com)`,
+        `A4 Duplex Print Batch Manifest (${dateTag})`,
+        `Total Labels: ${selected.length} | Paper: A4 Matte 180gsm | Hologram: 20x10mm Gold`,
+        `----------------------------------------------------------------------`,
+        ...lines,
+        `----------------------------------------------------------------------`,
+        `Tip: Attach the downloaded PDF file (NGA-Labels-A4-Duplex-${dateTag}.pdf) to this email.`
+      ].join("\n");
+
+      window.location.href = `mailto:${ADMIN_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    };
+
+    // =========================================================================
+    // PUBLIC CERTIFICATE VERIFICATION VIEW
+    // =========================================================================
+    window.handleVerifySubmit = function (e) {
+      e.preventDefault();
+      const q = document.getElementById("verify-search-input").value.trim().toUpperCase();
+      if (q) verifyCertificate(q);
+    };
+
+    window.verifyCertificate = function (certNum) {
+      const norm = certNum.trim().toUpperCase();
+      document.getElementById("verify-search-input").value = norm;
+      const found = records.find(r => r.certNum.toUpperCase() === norm);
+
+      const box = document.getElementById("verify-result-box");
+      const empty = document.getElementById("verify-empty-box");
+
+      if (!found) {
+        box.classList.add("hidden");
+        empty.classList.remove("hidden");
+        return;
+      }
+
+      empty.classList.add("hidden");
+      box.classList.remove("hidden");
+
+      const t = dict[lang];
+      const st = getPopulationStats(found);
+      const pickTxt = formatPickFull(found.pick);
+      const dispCountry = lang === "ar" && found.countryAr ? `${found.countryAr} (${found.countryEn})` : found.countryEn;
+      const dispDenom = lang === "ar" && found.denomAr ? `${found.denomAr} (${found.denomEn})` : found.denomEn;
+
+      const desigBadge = found.designation === "EPQ"
+        ? `<div class="mt-1.5 px-3 py-0.5 rounded-lg bg-goldBright text-emeraldDark font-extrabold text-sm tracking-wider shadow">EPQ</div>`
+        : (found.designation === "NET" ? `<div class="mt-1.5 px-3 py-0.5 rounded-lg bg-amber-600 text-white font-extrabold text-sm tracking-wider shadow">NET</div>` : "");
+
+      const topPopStrip = st.isTopPop ? `
+        <div class="bg-gradient-to-r from-amber-500 via-goldBright to-amber-500 text-emeraldDark px-5 py-3 flex flex-wrap items-center justify-between gap-2 border-b-2 border-emeraldDeep">
+          <div class="flex items-center gap-2 font-extrabold text-sm sm:text-base">
+            <span class="text-xl">👑</span>
+            <span>${lang === "ar" ? "أعلى تقييم مسجل لهذا الإصدار — TOP POP" : "HIGHEST GRADED IN REGISTRY — TOP POP"}</span>
+          </div>
+          <span class="px-3 py-0.5 rounded-full bg-emeraldDark text-goldBright font-mono text-xs font-extrabold">
+            ${st.inSameGrade === 1
+              ? (lang === "ar" ? "فريدة من نوعها (1/1)" : "SINGLE FINEST (1/1)")
+              : (lang === "ar" ? `مشتركة (${st.inSameGrade} حبات)` : `TIED FINEST (${st.inSameGrade})`)}
+          </span>
+        </div>
+      ` : "";
+
+      box.innerHTML = `
+        <div class="bg-white rounded-3xl border-2 border-goldBright shadow-xl overflow-hidden">
+          <div class="bg-gradient-to-r from-emeraldDark via-emeraldDeep to-emeraldMid px-5 sm:px-8 py-4 text-white flex flex-wrap items-center justify-between gap-3 border-b border-goldBright/50">
+            <div class="flex items-center gap-2.5">
+              <span class="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-300 flex items-center justify-center text-emerald-300 font-bold">✓</span>
+              <div>
+                <div class="text-xs text-goldBright font-bold uppercase tracking-wider">${t.verifiedAuthentic}</div>
+                <div class="font-mono font-extrabold text-lg sm:text-xl text-white">${esc(found.certNum)}</div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-2xl border border-goldBright/40">
+              <div class="text-end">
+                <div class="text-[10px] uppercase tracking-widest text-goldPale font-bold">NGA GRADE</div>
+                <div class="text-xs text-emerald-100">${found.designation === "EPQ" ? "Exceptional Paper Quality" : (found.designation === "NET" ? "Net Graded" : "Standard Grade")}</div>
+              </div>
+              <div class="flex flex-col items-center justify-center bg-white text-emeraldDeep px-3.5 py-1.5 rounded-xl border-2 border-goldBright shadow">
+                <span class="font-serifDisplay font-extrabold text-2xl sm:text-3xl leading-none">${esc(found.grade)}</span>
+                ${desigBadge}
+              </div>
+            </div>
+          </div>
+
+          ${topPopStrip}
+
+          <!-- Population Breakdown -->
+          <div class="px-5 sm:px-8 py-4 bg-goldPale/70 border-b border-goldBright/40 grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+            <div class="bg-white rounded-2xl p-3 border border-goldBright/40 shadow-sm">
+              <div class="text-xs text-slate-500 font-bold">${lang === "ar" ? `في تقييم ${esc(found.grade)}` : `In Grade ${esc(found.grade)}`}</div>
+              <div class="font-extrabold text-emeraldDeep text-lg sm:text-xl mt-0.5">${st.inSameGrade} <span class="text-xs font-bold text-slate-600">${lang === "ar" ? "حبة" : "note(s)"}</span></div>
+            </div>
+            <div class="bg-white rounded-2xl p-3 border border-goldBright/40 shadow-sm">
+              <div class="text-xs text-slate-500 font-bold">${lang === "ar" ? "بتقييم أعلى" : "Graded Higher"}</div>
+              <div class="font-extrabold ${st.gradedHigher === 0 ? "text-amber-700" : "text-emeraldDeep"} text-lg sm:text-xl mt-0.5">${st.gradedHigher} <span class="text-xs font-bold text-slate-600">${lang === "ar" ? "حبة" : "note(s)"}</span></div>
+            </div>
+            <div class="bg-white rounded-2xl p-3 border border-goldBright/40 shadow-sm flex flex-col items-center justify-center">
+              <div class="text-xs text-slate-500 font-bold">${lang === "ar" ? "تصنيف الندرة" : "Population Status"}</div>
+              <div class="mt-1">
+                ${st.isTopPop
+                  ? `<span class="px-3 py-1 rounded-full bg-emeraldDeep text-goldBright text-xs font-extrabold">👑 ${lang === "ar" ? "أعلى تقييم | TOP POP" : "TOP POP"}</span>`
+                  : `<span class="font-mono font-bold text-sm text-slate-700">${lang === "ar" ? `إجمالي المسجل: ${st.total}` : `Total Graded: ${st.total}`}</span>`}
+              </div>
+            </div>
+          </div>
+
+          <!-- Front & Back Scans -->
+          <div class="p-5 sm:p-8 bg-ivoryBg/60 border-b border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between text-xs font-bold text-emeraldDeep">
+                <span>${t.obverseLabel}</span>
+                <span class="text-slate-500">🔍 ${t.clickToZoom}</span>
+              </div>
+              <div onclick="openScanLightbox('${found.frontImg}', '${esc(found.certNum)} — ${t.obverseLabel}')"
+                class="bg-white p-2.5 rounded-2xl border border-goldBright/40 shadow-sm cursor-zoom-in hover:shadow-md transition overflow-hidden">
+                <img src="${found.frontImg}" alt="Obverse" class="w-full h-48 sm:h-60 object-contain rounded-xl" />
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <div class="flex items-center justify-between text-xs font-bold text-emeraldDeep">
+                <span>${t.reverseLabel}</span>
+                <span class="text-slate-500">🔍 ${t.clickToZoom}</span>
+              </div>
+              <div onclick="openScanLightbox('${found.backImg}', '${esc(found.certNum)} — ${t.reverseLabel}')"
+                class="bg-white p-2.5 rounded-2xl border border-goldBright/40 shadow-sm cursor-zoom-in hover:shadow-md transition overflow-hidden">
+                <img src="${found.backImg}" alt="Reverse" class="w-full h-48 sm:h-60 object-contain rounded-xl" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Specifications -->
+          <div class="p-5 sm:p-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+            <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
+              <div class="text-xs text-slate-500 font-semibold">${t.specCountry}</div>
+              <div class="font-extrabold text-emeraldDeep text-base mt-0.5">${esc(dispCountry)}</div>
+            </div>
+            <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
+              <div class="text-xs text-slate-500 font-semibold">${t.specDenom}</div>
+              <div class="font-extrabold text-emeraldDeep text-base mt-0.5">${esc(dispDenom)}</div>
+            </div>
+            <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
+              <div class="text-xs text-slate-500 font-semibold">${t.specYear}</div>
+              <div class="font-mono font-bold text-slate-800 text-base mt-0.5">${esc(found.year)}</div>
+            </div>
+            <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
+              <div class="text-xs text-slate-500 font-semibold">${t.specSerial}</div>
+              <div class="font-mono font-bold text-red-700 text-base mt-0.5">${esc(found.serial)}</div>
+            </div>
+            <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
+              <div class="text-xs text-slate-500 font-semibold">${t.specPick}</div>
+              <div class="font-mono font-bold text-slate-800 text-base mt-0.5" dir="ltr">${esc(pickTxt || "—")}</div>
+            </div>
+            <div class="p-3.5 rounded-2xl bg-goldPale/60 border border-goldBright/40">
+              <div class="text-xs text-amber-900 font-semibold">${t.specHolo}</div>
+              <div class="font-mono font-extrabold text-amber-900 text-base mt-0.5">${found.holoSerial ? "#" + esc(found.holoSerial) : "—"}</div>
+            </div>
+            ${found.notes ? `
+              <div class="sm:col-span-2 lg:col-span-3 p-3.5 rounded-2xl bg-emeraldDeep/5 border border-emeraldDeep/15">
+                <div class="text-xs text-emeraldDeep font-bold">${t.specNotes}</div>
+                <div class="text-slate-700 mt-1">${esc(found.notes)}</div>
+              </div>
+            ` : ""}
+          </div>
+        </div>
+      `;
+    };
+
+    // =========================================================================
+    // LIGHTBOX & UTILITIES
+    // =========================================================================
+    window.openScanLightbox = function (src, title) {
+      document.getElementById("lightbox-image").src = src;
+      document.getElementById("lightbox-title").textContent = title;
+      document.getElementById("scan-lightbox").classList.remove("hidden");
+    };
+
+    window.closeScanLightbox = function () {
+      document.getElementById("scan-lightbox").classList.add("hidden");
+    };
+
+    function toast(msg) {
+      const el = document.getElementById("toast-alert");
+      el.textContent = msg;
+      el.classList.remove("hidden");
+      setTimeout(() => el.classList.add("hidden"), 3200);
+    }
+
+    function esc(s) {
+      return String(s || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    // Boot
+    window.addEventListener("DOMContentLoaded", async () => {
+      await initStorage();
+      records.forEach(r => selectedCertIds.add(r.certNum));
+      resetCertForm();
+      updateSubmissionTotal();
+      checkSecretRoute();
+
+      const certParam = new URLSearchParams(window.location.search).get("cert");
+      if (certParam) verifyCertificate(certParam);
+    });
+  </script>
+</body>
+</html>
